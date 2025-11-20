@@ -1,5 +1,4 @@
-import db from "../config/database.js";
-
+import db from "../config/db.js";
 export const getSalarios = async () => {
   const query = `
     SELECT sd.*, c.nombre_cargo

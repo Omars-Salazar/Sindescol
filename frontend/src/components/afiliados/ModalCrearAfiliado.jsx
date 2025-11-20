@@ -26,10 +26,40 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
     id_pension: "",
     id_cesantias: "",
     
-    // Laborales
+    // Laborales - Básicos
     id_cargo: "",
-    id_institucion: "",
     fecha_afiliacion: "",
+    municipio_trabajo: "",
+    
+    // Laborales - Institución
+    id_institucion: "",
+    correo_institucional: "",
+    telefono_institucional: "",
+    direccion_institucion: "",
+    
+    // Laborales - Rector
+    nombre_rector: "",
+    
+    // Laborales - Actas de Nombramiento
+    tipo_documento: "",
+    numero_resolucion: "",
+    fecha_resolucion: "",
+    archivo_nombramiento: null,
+    
+    // Laborales - Actas de Posesión
+    numero_acta: "",
+    fecha_acta: "",
+    archivo_posesion: null,
+    
+    // Otros Cargos (array)
+    otros_cargos: []
+  });
+
+  // Estado para otros cargos temporal
+  const [otroCargo, setOtroCargo] = useState({
+    nombre_cargo: "",
+    fecha_inicio: "",
+    fecha_fin: ""
   });
 
   const [opciones, setOpciones] = useState({
@@ -106,11 +136,38 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
     }));
   };
 
+  const handleOtroCargoChange = (e) => {
+    const { name, value } = e.target;
+    setOtroCargo((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const agregarOtroCargo = () => {
+    if (otroCargo.nombre_cargo && otroCargo.fecha_inicio) {
+      setFormData((prev) => ({
+        ...prev,
+        otros_cargos: [...prev.otros_cargos, otroCargo],
+      }));
+      setOtroCargo({ nombre_cargo: "", fecha_inicio: "", fecha_fin: "" });
+    } else {
+      alert("Por favor completa el nombre del cargo y la fecha de inicio");
+    }
+  };
+
+  const eliminarOtroCargo = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      otros_cargos: prev.otros_cargos.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
     // Validar campos requeridos
-    const requeridos = ["cedula", "nombres", "apellidos", "id_cargo", "id_institucion"];
+    const requeridos = ["cedula", "nombres", "apellidos", "id_cargo"];
     const incompletos = requeridos.filter((campo) => !formData[campo]);
     
     if (incompletos.length > 0) {
@@ -139,9 +196,23 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
       id_pension: "",
       id_cesantias: "",
       id_cargo: "",
-      id_institucion: "",
       fecha_afiliacion: "",
+      municipio_trabajo: "",
+      id_institucion: "",
+      correo_institucional: "",
+      telefono_institucional: "",
+      direccion_institucion: "",
+      nombre_rector: "",
+      tipo_documento: "",
+      numero_resolucion: "",
+      fecha_resolucion: "",
+      archivo_nombramiento: null,
+      numero_acta: "",
+      fecha_acta: "",
+      archivo_posesion: null,
+      otros_cargos: []
     });
+    setOtroCargo({ nombre_cargo: "", fecha_inicio: "", fecha_fin: "" });
     setActiveTab("personales");
   };
 
@@ -258,66 +329,56 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
               </div>
 
               <fieldset className="fieldset">
-                <legend>Domicilio</legend>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Dirección Domicilio</label>
-                    <input
-                      type="text"
-                      name="direccion_domicilio"
-                      value={formData.direccion_domicilio}
-                      onChange={handleChange}
-                      placeholder="Ej: Calle 10 #2-30"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Municipio Domicilio</label>
-                    <select
-                      name="municipio_domicilio"
-                      value={formData.municipio_domicilio}
-                      onChange={handleChange}
-                    >
-                      <option value="">Seleccionar...</option>
-                      {opciones.municipios.map((m) => (
-                        <option key={m.id_municipio} value={m.id_municipio}>
-                          {m.nombre_municipio}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </fieldset>
+  <legend>Domicilio</legend>
+  <div className="form-row">
+    <div className="form-group">
+      <label>Dirección Domicilio</label>
+      <input
+        type="text"
+        name="direccion_domicilio"
+        value={formData.direccion_domicilio}
+        onChange={handleChange}
+        placeholder="Ej: Calle 10 #2-30"
+      />
+    </div>
+    <div className="form-group">
+      <label>Municipio Domicilio</label>
+      <input
+        type="text"
+        name="municipio_domicilio"
+        value={formData.municipio_domicilio}
+        onChange={handleChange}
+        placeholder="Ej: Cali, Pasto, Medellín"
+      />
+    </div>
+  </div>
+</fieldset>
 
-              <fieldset className="fieldset">
-                <legend>Residencia</legend>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Dirección Residencia</label>
-                    <input
-                      type="text"
-                      name="direccion_residencia"
-                      value={formData.direccion_residencia}
-                      onChange={handleChange}
-                      placeholder="Ej: Carrera 4 #5-6"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Municipio Residencia</label>
-                    <select
-                      name="municipio_residencia"
-                      value={formData.municipio_residencia}
-                      onChange={handleChange}
-                    >
-                      <option value="">Seleccionar...</option>
-                      {opciones.municipios.map((m) => (
-                        <option key={m.id_municipio} value={m.id_municipio}>
-                          {m.nombre_municipio}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </fieldset>
+<fieldset className="fieldset">
+  <legend>Residencia</legend>
+  <div className="form-row">
+    <div className="form-group">
+      <label>Dirección Residencia</label>
+      <input
+        type="text"
+        name="direccion_residencia"
+        value={formData.direccion_residencia}
+        onChange={handleChange}
+        placeholder="Ej: Carrera 4 #5-6"
+      />
+    </div>
+    <div className="form-group">
+      <label>Municipio Residencia</label>
+      <input
+        type="text"
+        name="municipio_residencia"
+        value={formData.municipio_residencia}
+        onChange={handleChange}
+        placeholder="Ej: Jamundí, Ipiales, Bello"
+      />
+    </div>
+  </div>
+</fieldset>
             </div>
           )}
 
@@ -395,52 +456,295 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
           {/* TAB: DATOS LABORALES */}
           {activeTab === "laborales" && (
             <div className="tab-content">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Cargo *</label>
-                  <select
-                    name="id_cargo"
-                    value={formData.id_cargo}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Seleccionar...</option>
-                    {opciones.cargos.map((c) => (
-                      <option key={c.id_cargo} value={c.id_cargo}>
-                        {c.nombre_cargo}
-                      </option>
-                    ))}
-                  </select>
+              {/* INFORMACIÓN BÁSICA LABORAL */}
+              <fieldset className="fieldset">
+                <legend>Información Básica</legend>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Cargo *</label>
+                    <select
+                      name="id_cargo"
+                      value={formData.id_cargo}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Seleccionar...</option>
+                      {opciones.cargos.map((c) => (
+                        <option key={c.id_cargo} value={c.id_cargo}>
+                          {c.nombre_cargo}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Fecha de Afiliación</label>
+                    <input
+                      type="date"
+                      name="fecha_afiliacion"
+                      value={formData.fecha_afiliacion}
+                      onChange={handleChange}
+                    />
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Institución Educativa *</label>
-                  <select
-                    name="id_institucion"
-                    value={formData.id_institucion}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Seleccionar...</option>
-                    {opciones.instituciones.map((i) => (
-                      <option key={i.id_institucion} value={i.id_institucion}>
-                        {i.nombre_institucion}
-                      </option>
-                    ))}
-                  </select>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Municipio de Trabajo</label>
+                    <select
+                      name="municipio_trabajo"
+                      value={formData.municipio_trabajo}
+                      onChange={handleChange}
+                    >
+                      <option value="">Seleccionar...</option>
+                      {opciones.municipios.map((m) => (
+                        <option key={m.id_municipio} value={m.id_municipio}>
+                          {m.nombre_municipio}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
+              </fieldset>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Fecha de Afiliación</label>
-                  <input
-                    type="date"
-                    name="fecha_afiliacion"
-                    value={formData.fecha_afiliacion}
-                    onChange={handleChange}
-                  />
+              {/* ACTAS DE NOMBRAMIENTO */}
+              <fieldset className="fieldset">
+                <legend>Acta de Nombramiento</legend>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Tipo de Documento</label>
+                    <select
+                      name="tipo_documento"
+                      value={formData.tipo_documento}
+                      onChange={handleChange}
+                    >
+                      <option value="">Seleccionar...</option>
+                      <option value="Resolución">Resolución</option>
+                      <option value="Decreto">Decreto</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Número de Resolución/Decreto</label>
+                    <input
+                      type="text"
+                      name="numero_resolucion"
+                      value={formData.numero_resolucion}
+                      onChange={handleChange}
+                      placeholder="Ej: RES-2020-001"
+                    />
+                  </div>
                 </div>
-              </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Fecha de Resolución/Decreto</label>
+                    <input
+                      type="date"
+                      name="fecha_resolucion"
+                      value={formData.fecha_resolucion}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Archivo de Nombramiento</label>
+                    <input
+                      type="file"
+                      name="archivo_nombramiento"
+                      onChange={handleChange}
+                      accept=".pdf,.doc,.docx"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              {/* ACTAS DE POSESIÓN */}
+              <fieldset className="fieldset">
+                <legend>Actas de Posesión</legend>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Número de Acta</label>
+                    <input
+                      type="text"
+                      name="numero_acta"
+                      value={formData.numero_acta}
+                      onChange={handleChange}
+                      placeholder="Ej: ACTA-2020-001"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Fecha del Acta</label>
+                    <input
+                      type="date"
+                      name="fecha_acta"
+                      value={formData.fecha_acta}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Archivo del Acta</label>
+                    <input
+                      type="file"
+                      name="archivo_posesion"
+                      onChange={handleChange}
+                      accept=".pdf,.doc,.docx"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              {/* OTROS CARGOS */}
+              <fieldset className="fieldset">
+                <legend>Otros Cargos</legend>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Nombre del Cargo</label>
+                    <input
+                      type="text"
+                      name="nombre_cargo"
+                      value={otroCargo.nombre_cargo}
+                      onChange={handleOtroCargoChange}
+                      placeholder="Ej: Auxiliar de Sistemas"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Fecha de Inicio</label>
+                    <input
+                      type="date"
+                      name="fecha_inicio"
+                      value={otroCargo.fecha_inicio}
+                      onChange={handleOtroCargoChange}
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Fecha de Fin</label>
+                    <input
+                      type="date"
+                      name="fecha_fin"
+                      value={otroCargo.fecha_fin}
+                      onChange={handleOtroCargoChange}
+                    />
+                  </div>
+                  <div className="form-group" style={{ display: "flex", alignItems: "flex-end" }}>
+                    <button
+                      type="button"
+                      className="btn-submit"
+                      onClick={agregarOtroCargo}
+                      style={{ width: "100%" }}
+                    >
+                      + Agregar Cargo
+                    </button>
+                  </div>
+                </div>
+
+                {/* Lista de otros cargos agregados */}
+                {formData.otros_cargos.length > 0 && (
+                  <div style={{ marginTop: "1rem" }}>
+                    <h4 style={{ fontSize: "14px", marginBottom: "0.5rem" }}>Cargos Agregados:</h4>
+                    {formData.otros_cargos.map((cargo, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          background: "#f5f5f5",
+                          padding: "0.75rem",
+                          borderRadius: "4px",
+                          marginBottom: "0.5rem",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center"
+                        }}
+                      >
+                        <div>
+                          <strong>{cargo.nombre_cargo}</strong>
+                          <br />
+                          <small>
+                            {cargo.fecha_inicio} - {cargo.fecha_fin || "Actual"}
+                          </small>
+                        </div>
+                        <button
+                          type="button"
+                          className="btn-delete"
+                          onClick={() => eliminarOtroCargo(index)}
+                          style={{ padding: "0.5rem 1rem" }}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </fieldset>
+
+              {/* INSTITUCIÓN EDUCATIVA */}
+              <fieldset className="fieldset">
+                <legend>Institución Educativa</legend>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Institución</label>
+                    <select
+                      name="id_institucion"
+                      value={formData.id_institucion}
+                      onChange={handleChange}
+                    >
+                      <option value="">Seleccionar...</option>
+                      {opciones.instituciones.map((i) => (
+                        <option key={i.id_institucion} value={i.id_institucion}>
+                          {i.nombre_institucion}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Correo Institucional</label>
+                    <input
+                      type="email"
+                      name="correo_institucional"
+                      value={formData.correo_institucional}
+                      onChange={handleChange}
+                      placeholder="Ej: contacto@institucion.edu.co"
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Teléfono Institucional</label>
+                    <input
+                      type="tel"
+                      name="telefono_institucional"
+                      value={formData.telefono_institucional}
+                      onChange={handleChange}
+                      placeholder="Ej: 3001112233"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Dirección de la Institución</label>
+                    <input
+                      type="text"
+                      name="direccion_institucion"
+                      value={formData.direccion_institucion}
+                      onChange={handleChange}
+                      placeholder="Ej: Calle 10 #2-30"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              {/* RECTOR */}
+              <fieldset className="fieldset">
+                <legend>Rector</legend>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Nombre del Rector</label>
+                    <input
+                      type="text"
+                      name="nombre_rector"
+                      value={formData.nombre_rector}
+                      onChange={handleChange}
+                      placeholder="Ej: Dr. Carlos Mendoza"
+                    />
+                  </div>
+                </div>
+              </fieldset>
             </div>
           )}
 

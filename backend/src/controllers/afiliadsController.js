@@ -36,11 +36,12 @@ export const getAfiliadoByCedula = async (req, res) => {
 
 export const createAfiliado = async (req, res) => {
   try {
-    console.log("Datos recibidos:", req.body);
+    console.log("📝 Datos recibidos para crear afiliado:", JSON.stringify(req.body, null, 2));
     const afiliado = await afiliadsService.createAfiliado(req.body);
+    console.log("✅ Afiliado creado exitosamente:", afiliado);
     res.status(201).json({ success: true, data: afiliado });
   } catch (error) {
-    console.error("Error en createAfiliado:", error);
+    console.error("❌ Error en createAfiliado:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -48,6 +49,7 @@ export const createAfiliado = async (req, res) => {
 export const updateAfiliado = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log("📝 Actualizando afiliado:", id, req.body);
     const afiliado = await afiliadsService.updateAfiliado(id, req.body);
     if (!afiliado) return res.status(404).json({ success: false, error: "Afiliado no encontrado" });
     res.json({ success: true, data: afiliado });
