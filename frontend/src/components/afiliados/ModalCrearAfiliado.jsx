@@ -11,46 +11,46 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
     fecha_nacimiento: "",
     religion_id: "",
     foto_afiliado: null,
-    
+
     // Domicilio
     direccion_domicilio: "",
     municipio_domicilio: "",
-    
+
     // Residencia
     direccion_residencia: "",
     municipio_residencia: "",
-    
+
     // Seguridad Social
     id_eps: "",
     id_arl: "",
     id_pension: "",
     id_cesantias: "",
-    
+
     // Laborales - Básicos
     id_cargo: "",
     fecha_afiliacion: "",
     municipio_trabajo: "",
-    
+
     // Laborales - Institución
     id_institucion: "",
     correo_institucional: "",
     telefono_institucional: "",
     direccion_institucion: "",
-    
+
     // Laborales - Rector
     nombre_rector: "",
-    
+
     // Laborales - Actas de Nombramiento
     tipo_documento: "",
     numero_resolucion: "",
     fecha_resolucion: "",
     archivo_nombramiento: null,
-    
+
     // Laborales - Actas de Posesión
     numero_acta: "",
     fecha_acta: "",
     archivo_posesion: null,
-    
+
     // Otros Cargos (array)
     otros_cargos: []
   });
@@ -99,13 +99,13 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
           console.log(`Cargando ${key} desde ${url}...`);
           const response = await fetch(url);
           console.log(`${key} - Status: ${response.status}`);
-          
+
           if (!response.ok) {
             console.warn(`${key} retornó ${response.status}, usando array vacío`);
             data[key] = [];
             continue;
           }
-          
+
           const text = await response.text();
           let result;
           try {
@@ -165,11 +165,11 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validar campos requeridos
     const requeridos = ["cedula", "nombres", "apellidos", "id_cargo"];
     const incompletos = requeridos.filter((campo) => !formData[campo]);
-    
+
     if (incompletos.length > 0) {
       alert(`Faltan campos requeridos: ${incompletos.join(", ")}`);
       return;
@@ -329,56 +329,56 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
               </div>
 
               <fieldset className="fieldset">
-  <legend>Domicilio</legend>
-  <div className="form-row">
-    <div className="form-group">
-      <label>Dirección Domicilio</label>
-      <input
-        type="text"
-        name="direccion_domicilio"
-        value={formData.direccion_domicilio}
-        onChange={handleChange}
-        placeholder="Ej: Calle 10 #2-30"
-      />
-    </div>
-    <div className="form-group">
-      <label>Municipio Domicilio</label>
-      <input
-        type="text"
-        name="municipio_domicilio"
-        value={formData.municipio_domicilio}
-        onChange={handleChange}
-        placeholder="Ej: Cali, Pasto, Medellín"
-      />
-    </div>
-  </div>
-</fieldset>
+                <legend>Domicilio</legend>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Dirección Domicilio</label>
+                    <input
+                      type="text"
+                      name="direccion_domicilio"
+                      value={formData.direccion_domicilio}
+                      onChange={handleChange}
+                      placeholder="Ej: Calle 10 #2-30"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Municipio Domicilio</label>
+                    <input
+                      type="text"
+                      name="municipio_domicilio"
+                      value={formData.municipio_domicilio}
+                      onChange={handleChange}
+                      placeholder="Ej: Cali, Pasto, Medellín"
+                    />
+                  </div>
+                </div>
+              </fieldset>
 
-<fieldset className="fieldset">
-  <legend>Residencia</legend>
-  <div className="form-row">
-    <div className="form-group">
-      <label>Dirección Residencia</label>
-      <input
-        type="text"
-        name="direccion_residencia"
-        value={formData.direccion_residencia}
-        onChange={handleChange}
-        placeholder="Ej: Carrera 4 #5-6"
-      />
-    </div>
-    <div className="form-group">
-      <label>Municipio Residencia</label>
-      <input
-        type="text"
-        name="municipio_residencia"
-        value={formData.municipio_residencia}
-        onChange={handleChange}
-        placeholder="Ej: Jamundí, Ipiales, Bello"
-      />
-    </div>
-  </div>
-</fieldset>
+              <fieldset className="fieldset">
+                <legend>Residencia</legend>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Dirección Residencia</label>
+                    <input
+                      type="text"
+                      name="direccion_residencia"
+                      value={formData.direccion_residencia}
+                      onChange={handleChange}
+                      placeholder="Ej: Carrera 4 #5-6"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Municipio Residencia</label>
+                    <input
+                      type="text"
+                      name="municipio_residencia"
+                      value={formData.municipio_residencia}
+                      onChange={handleChange}
+                      placeholder="Ej: Jamundí, Ipiales, Bello"
+                    />
+                  </div>
+                </div>
+              </fieldset>
             </div>
           )}
 
@@ -594,17 +594,19 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
               {/* OTROS CARGOS */}
               <fieldset className="fieldset">
                 <legend>Otros Cargos</legend>
+                <div className="form-group">
+                  <label>Nombre del Cargo</label>
+                  <input
+                    type="text"
+                    name="nombre_cargo"
+                    value={otroCargo.nombre_cargo}
+                    onChange={handleOtroCargoChange}
+                    placeholder="Ej: Auxiliar de Sistemas"
+                  />
+                </div>
+
+                {/* FECHAS EN UNA SOLA LÍNEA */}
                 <div className="form-row">
-                  <div className="form-group">
-                    <label>Nombre del Cargo</label>
-                    <input
-                      type="text"
-                      name="nombre_cargo"
-                      value={otroCargo.nombre_cargo}
-                      onChange={handleOtroCargoChange}
-                      placeholder="Ej: Auxiliar de Sistemas"
-                    />
-                  </div>
                   <div className="form-group">
                     <label>Fecha de Inicio</label>
                     <input
@@ -614,8 +616,6 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
                       onChange={handleOtroCargoChange}
                     />
                   </div>
-                </div>
-                <div className="form-row">
                   <div className="form-group">
                     <label>Fecha de Fin</label>
                     <input
@@ -663,7 +663,7 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
                         </div>
                         <button
                           type="button"
-                          className="btn-delete"
+                          className="btn-cancel"
                           onClick={() => eliminarOtroCargo(index)}
                           style={{ padding: "0.5rem 1rem" }}
                         >
@@ -674,7 +674,6 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
                   </div>
                 )}
               </fieldset>
-
               {/* INSTITUCIÓN EDUCATIVA */}
               <fieldset className="fieldset">
                 <legend>Institución Educativa</legend>
