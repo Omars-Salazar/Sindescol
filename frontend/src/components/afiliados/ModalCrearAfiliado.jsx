@@ -61,6 +61,8 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
     otros_cargos: []
   });
 
+  // Estado para el salario calculado
+  const [salarioCalculado, setSalarioCalculado] = useState(null);
   // Estado para otros cargos temporal
   const [otroCargo, setOtroCargo] = useState({
     nombre_cargo: "",
