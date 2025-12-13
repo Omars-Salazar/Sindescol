@@ -16,8 +16,8 @@ export default function Departamentos() {
   const [modalEditarOpen, setModalEditarOpen] = useState(false);
   const [municipioEditar, setMunicipioEditar] = useState(null);
   
-  // Estado para expandir/colapsar departamentos
-  const [departamentosExpandidos, setDepartamentosExpandidos] = useState({});
+  // Estado para expandir/colapsar - SOLO almacena el nombre del departamento expandido
+  const [departamentoExpandido, setDepartamentoExpandido] = useState(null);
 
   useEffect(() => {
     cargarDepartamentos();
@@ -30,7 +30,19 @@ export default function Departamentos() {
       const data = await response.json();
       
       if (data.success) {
-        setDepartamentos(data.data || []);
+        // Eliminar departamentos duplicados
+        const departamentosUnicos = [];
+        const nombresVistos = new Set();
+        
+        for (const depto of (data.data || [])) {
+          if (!nombresVistos.has(depto.departamento)) {
+            nombresVistos.add(depto.departamento);
+            departamentosUnicos.push(depto);
+          }
+        }
+        
+        console.log("📋 Departamentos únicos cargados:", departamentosUnicos);
+        setDepartamentos(departamentosUnicos);
       }
     } catch (error) {
       console.error("Error cargando departamentos:", error);
@@ -57,25 +69,21 @@ export default function Departamentos() {
   };
 
   const toggleDepartamento = (nombreDepartamento) => {
-    console.log("Toggle departamento:", nombreDepartamento);
-    console.log("Estado actual:", departamentosExpandidos);
+    console.log("🔄 Toggle:", nombreDepartamento);
+    console.log("📊 Estado actual:", departamentoExpandido);
     
-    if (departamentosExpandidos[nombreDepartamento]) {
-      // Si ya está expandido, colapsarlo
-      setDepartamentosExpandidos(prev => {
-        const nuevo = { ...prev, [nombreDepartamento]: false };
-        console.log("Nuevo estado (colapsando):", nuevo);
-        return nuevo;
-      });
+    if (departamentoExpandido === nombreDepartamento) {
+      // Si el departamento ya está expandido, colapsarlo
+      console.log("❌ Cerrando departamento");
+      setDepartamentoExpandido(null);
     } else {
-      // Si está colapsado, expandirlo y cargar municipios
-      setDepartamentosExpandidos(prev => {
-        const nuevo = { ...prev, [nombreDepartamento]: true };
-        console.log("Nuevo estado (expandiendo):", nuevo);
-        return nuevo;
-      });
+      // Si no está expandido, expandir este y colapsar cualquier otro
+      console.log("✅ Abriendo departamento:", nombreDepartamento);
+      setDepartamentoExpandido(nombreDepartamento);
       
+      // Cargar municipios si no existen
       if (!municipiosPorDepartamento[nombreDepartamento]) {
+        console.log("📥 Cargando municipios para:", nombreDepartamento);
         cargarMunicipios(nombreDepartamento);
       }
     }
@@ -95,8 +103,8 @@ export default function Departamentos() {
         showAlert("Departamento y municipios creados exitosamente", "success");
         setModalDepartamentoOpen(false);
         cargarDepartamentos();
-        // Limpiar cache de municipios
         setMunicipiosPorDepartamento({});
+        setDepartamentoExpandido(null);
       } else {
         showAlert(data.error || "Error al crear departamento", "danger");
       }
@@ -120,7 +128,6 @@ export default function Departamentos() {
         showAlert("Municipio creado exitosamente", "success");
         setModalMunicipioOpen(false);
         cargarDepartamentos();
-        // Limpiar cache de municipios para ese departamento
         setMunicipiosPorDepartamento(prev => {
           const nuevo = { ...prev };
           delete nuevo[formData.departamento];
@@ -230,10 +237,17 @@ export default function Departamentos() {
         </div>
       ) : (
         <div className="departamentos-grid">
-          {departamentos.map((depto, index) => {
+          {departamentos.map((depto) => {
             const nombreDepto = depto.departamento;
+            const estaExpandido = departamentoExpandido === nombreDepto;
+            
+            console.log(`🏷️ Renderizando: "${nombreDepto}", expandido: ${estaExpandido}, estado actual: "${departamentoExpandido}"`);
+            
             return (
-              <div key={`${nombreDepto}-${index}`} className="departamento-card">
+              <div 
+                key={nombreDepto} 
+                className={`departamento-card ${estaExpandido ? 'expandido' : ''}`}
+              >
                 <div className="departamento-header" onClick={() => toggleDepartamento(nombreDepto)}>
                   <h3>📍 {nombreDepto}</h3>
                   <button
@@ -243,11 +257,11 @@ export default function Departamentos() {
                       toggleDepartamento(nombreDepto);
                     }}
                   >
-                    {departamentosExpandidos[nombreDepto] ? "▼" : "▶"}
+                    {estaExpandido ? "▼" : "▶"}
                   </button>
                 </div>
 
-                {departamentosExpandidos[nombreDepto] === true && (
+                {estaExpandido ? (
                   <div className="municipios-lista">
                     {municipiosPorDepartamento[nombreDepto] ? (
                       municipiosPorDepartamento[nombreDepto].length > 0 ? (
@@ -285,7 +299,7 @@ export default function Departamentos() {
                       <div className="loading-municipios">Cargando municipios...</div>
                     )}
                   </div>
-                )}
+                ) : null}
               </div>
             );
           })}

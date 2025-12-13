@@ -1,23 +1,41 @@
+/* ===============================
+   GRID → FLEXBOX CONTENEDOR
+================================ */
 .departamentos-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 1.5rem;
   margin-top: 2rem;
+  align-items: flex-start;
 }
 
+/* ===============================
+   TARJETA DEPARTAMENTO
+================================ */
 .departamento-card {
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  flex: 1 1 350px;
+  max-width: calc(33.333% - 1.5rem);
 }
 
+.departamento-card.expandido {
+  overflow: visible;
+}
+
+/* Hover */
 .departamento-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
+/* ===============================
+   HEADER
+================================ */
 .departamento-header {
   background: linear-gradient(90deg, #1976D2 0%, #0D47A1 100%);
   color: white;
@@ -26,6 +44,7 @@
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
+  user-select: none;
 }
 
 .departamento-header h3 {
@@ -33,6 +52,9 @@
   font-size: 1.3rem;
 }
 
+/* ===============================
+   BOTÓN EXPANDIR
+================================ */
 .btn-expand {
   background: rgba(255, 255, 255, 0.2);
   border: none;
@@ -46,18 +68,26 @@
   align-items: center;
   justify-content: center;
   transition: background 0.2s;
+  flex-shrink: 0;
 }
 
 .btn-expand:hover {
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* ===============================
+   LISTA MUNICIPIOS
+================================ */
 .municipios-lista {
   padding: 1rem;
   max-height: 400px;
   overflow-y: auto;
+  background: white;
 }
 
+/* ===============================
+   MUNICIPIOS
+================================ */
 .municipio-item {
   display: flex;
   justify-content: space-between;
@@ -76,18 +106,24 @@
 .municipio-nombre {
   font-weight: 500;
   color: #333;
+  flex: 1;
 }
 
 .municipio-actions {
   display: flex;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
+/* ===============================
+   ESTADOS
+================================ */
 .no-municipios {
   text-align: center;
   color: #999;
   padding: 2rem;
   font-style: italic;
+  margin: 0;
 }
 
 .loading-municipios {
@@ -96,7 +132,9 @@
   color: #666;
 }
 
-/* Modal Styles */
+/* ===============================
+   MODALES
+================================ */
 .modal-departamentos {
   position: fixed;
   top: 0;
@@ -235,9 +273,18 @@
   border-top: 1px solid #f0f0f0;
 }
 
+/* ===============================
+   RESPONSIVE
+================================ */
+@media (max-width: 1024px) {
+  .departamento-card {
+    max-width: calc(50% - 1.5rem);
+  }
+}
+
 @media (max-width: 768px) {
-  .departamentos-grid {
-    grid-template-columns: 1fr;
+  .departamento-card {
+    max-width: 100%;
   }
 
   .modal-departamentos-content {
