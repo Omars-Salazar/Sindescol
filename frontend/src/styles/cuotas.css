@@ -1,0 +1,263 @@
+.cuotas-formulario-card {
+  background: var(--light-blue);
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cuotas-form-content {
+  margin-top: 1.5rem;
+}
+
+.cuotas-file-hint {
+  display: block;
+  margin-top: 0.5rem;
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.cuotas-loading-container {
+  text-align: center;
+  padding: 2rem;
+}
+
+.cuotas-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid var(--primary-blue);
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Preview */
+.cuotas-preview-container {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+  border: 2px solid var(--primary-blue);
+}
+
+.cuotas-preview-title {
+  margin-bottom: 1rem;
+  color: var(--primary-blue);
+}
+
+.cuotas-advertencia-cero {
+  background: #FFF3CD;
+  border: 2px solid #FFC107;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cuotas-advertencia-cero strong {
+  color: #856404;
+}
+
+.cuotas-advertencia-cero ul {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+  padding-left: 1.5rem;
+}
+
+.cuotas-advertencia-cero li {
+  color: #856404;
+}
+
+.cuotas-preview-tabla-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.cuotas-row-error {
+  background: #FFCDD2 !important;
+}
+
+.cuotas-row-warning {
+  background: #FFF3CD !important;
+}
+
+.cuotas-valor-normal {
+  font-weight: bold;
+  color: var(--primary-blue);
+}
+
+.cuotas-valor-cero {
+  font-weight: bold;
+  color: #FF6F00;
+}
+
+.cuotas-icono-warning {
+  margin-left: 0.5rem;
+}
+
+.cuotas-estado-error {
+  color: #D32F2F;
+  font-weight: bold;
+}
+
+.cuotas-estado-warning {
+  color: #FF6F00;
+  font-weight: bold;
+}
+
+.cuotas-estado-success {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.cuotas-preview-acciones {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  justify-content: flex-end;
+}
+
+/* Filtros */
+.cuotas-filtros-card {
+  margin-top: 2rem;
+}
+
+.cuotas-filtros-title {
+  margin-bottom: 1rem;
+}
+
+.cuotas-filtros-footer {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.cuotas-total-badge {
+  margin-left: auto;
+  padding: 0.75rem 1.5rem;
+  background: var(--success);
+  color: white;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+/* Tabla */
+.cuotas-tabla-container {
+  overflow-x: auto;
+}
+
+.cuotas-numero-fila {
+  color: var(--text-light);
+}
+
+/* Info paginación */
+.cuotas-info-paginacion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cuotas-info-registros {
+  color: var(--text-dark);
+  font-weight: 500;
+}
+
+.cuotas-info-filtrados {
+  color: var(--text-light);
+  margin-left: 0.5rem;
+}
+
+.cuotas-selector-elementos {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cuotas-selector-elementos label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.cuotas-selector-elementos select {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 2px solid var(--border-color);
+}
+
+/* Paginación */
+.paginacion-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.paginacion-btn {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 40px;
+}
+
+.paginacion-btn:hover:not(:disabled) {
+  background: var(--light-blue);
+  transform: translateY(-2px);
+}
+
+.paginacion-btn:disabled {
+  background: #f0f0f0;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.paginacion-btn.activo {
+  background: var(--primary-blue);
+  color: white;
+  font-weight: bold;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cuotas-info-paginacion {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .cuotas-filtros-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cuotas-total-badge {
+    margin-left: 0;
+  }
+
+  .cuotas-preview-acciones {
+    flex-direction: column;
+  }
+
+  .paginacion-container {
+    flex-wrap: wrap;
+  }
+}

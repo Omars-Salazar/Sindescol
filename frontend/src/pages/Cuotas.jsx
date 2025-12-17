@@ -1,17 +1,25 @@
 import { useState, useEffect } from "react";
 import * as api from "../services/api";
+import { procesarArchivoCuotas } from "../utils/procesadorArchivos";
+import { FormularioCargaCuotas } from "../components/cuotas/FormularioCargaCuotas";
+import { TablaCuotas } from "../components/cuotas/TablaCuotas";
+import { FiltrosCuotas } from "../components/cuotas/FiltrosCuotas";
+import { PaginacionControles } from "../components/shared/PaginacionControles";
+import "../styles/cuotas.css";
 
 export default function Cuotas() {
   const [cuotas, setCuotas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
   const [alert, setAlert] = useState(null);
-  const [formData, setFormData] = useState({
-    cedula: "",
+  
+  // Paginación
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [elementosPorPagina, setElementosPorPagina] = useState(20);
+  const [filtros, setFiltros] = useState({
+    busqueda: "",
     mes: "",
-    anio: new Date().getFullYear(),
-    valor: "",
+    anio: ""
   });
 
   useEffect(() => {
@@ -29,190 +37,173 @@ export default function Cuotas() {
     setLoading(false);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleGuardarCuotas = async (cuotasValidas, mesSeleccionado, anioSeleccionado) => {
+    setLoading(true);
+    
     try {
-      if (editingId) {
-        await api.updateCuota(editingId, formData);
-        showAlert("Cuota actualizada", "success");
-      } else {
-        await api.createCuota(formData);
-        showAlert("Cuota creada", "success");
+      let exitosas = 0;
+      let fallidas = 0;
+
+      for (const cuota of cuotasValidas) {
+        try {
+          await api.createCuota({
+            cedula: cuota.cedula,
+            mes: mesSeleccionado,
+            anio: anioSeleccionado,
+            valor: cuota.valor
+          });
+          exitosas++;
+        } catch (error) {
+          console.error(`Error guardando cuota de ${cuota.cedula}:`, error);
+          fallidas++;
+        }
       }
-      resetForm();
-      fetchCuotas();
-    } catch (error) {
-      showAlert(error.response?.data?.error || "Error al guardar", "danger");
-    }
-  };
 
-  const handleEdit = (cuota) => {
-    setFormData(cuota);
-    setEditingId(cuota.id_cuota);
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm("¿Eliminar esta cuota?")) {
-      try {
-        await api.deleteCuota(id);
-        showAlert("Cuota eliminada", "success");
+      if (exitosas > 0) {
+        showAlert(`✅ ${exitosas} cuota(s) guardadas exitosamente${fallidas > 0 ? ` (${fallidas} fallidas)` : ''}`, "success");
+        setShowForm(false);
         fetchCuotas();
-      } catch (error) {
-        showAlert("Error al eliminar", "danger");
+      } else {
+        showAlert("No se pudo guardar ninguna cuota", "danger");
       }
+
+    } catch (error) {
+      console.error("Error en proceso de guardado:", error);
+      showAlert("Error al guardar las cuotas", "danger");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      cedula: "",
-      mes: "",
-      anio: new Date().getFullYear(),
-      valor: "",
-    });
-    setEditingId(null);
-    setShowForm(false);
+  const handleFiltroChange = (name, value) => {
+    setFiltros({ ...filtros, [name]: value });
+    setPaginaActual(1);
+  };
+
+  const limpiarFiltros = () => {
+    setFiltros({ busqueda: "", mes: "", anio: "" });
+    setPaginaActual(1);
   };
 
   const showAlert = (message, type) => {
     setAlert({ message, type });
-    setTimeout(() => setAlert(null), 3000);
+    setTimeout(() => setAlert(null), 5000);
   };
 
-  const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
-    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  // Filtrar cuotas
+  const cuotasFiltradas = cuotas.filter(cuota => {
+    const cumpleBusqueda = !filtros.busqueda || 
+      cuota.cedula?.toString().includes(filtros.busqueda);
+    const cumpleMes = !filtros.mes || cuota.mes === filtros.mes;
+    const cumpleAnio = !filtros.anio || cuota.anio === parseInt(filtros.anio);
+    
+    return cumpleBusqueda && cumpleMes && cumpleAnio;
+  });
+
+  // Paginación
+  const indexUltimo = paginaActual * elementosPorPagina;
+  const indexPrimero = indexUltimo - elementosPorPagina;
+  const cuotasPaginadas = cuotasFiltradas.slice(indexPrimero, indexUltimo);
+  const totalPaginas = Math.ceil(cuotasFiltradas.length / elementosPorPagina);
+
+  const cambiarPagina = (numeroPagina) => {
+    setPaginaActual(numeroPagina);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Calcular total
+  const totalCuotasMes = cuotasFiltradas.reduce((sum, c) => sum + (parseFloat(c.valor) || 0), 0);
 
   return (
     <div className="container">
       <div className="page-header">
         <h1>💰 Gestión de Cuotas</h1>
-        <p>Administra las cuotas de los afiliados</p>
+        <p>Carga y administra las cuotas mensuales de los afiliados</p>
       </div>
 
       {alert && <div className={`alert alert-${alert.type}`}>{alert.message}</div>}
 
       <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
-        {showForm ? "✕ Cancelar" : "➕ Nueva Cuota"}
+        {showForm ? "✕ Cancelar" : "📤 Cargar Cuotas del Mes"}
       </button>
 
       {showForm && (
-        <div className="card" style={{ marginTop: "2rem", background: "var(--light-blue)" }}>
-          <h3>{editingId ? "Editar Cuota" : "Crear Nueva Cuota"}</h3>
-          <form onSubmit={handleSubmit} style={{ marginTop: "1rem" }}>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Cédula del Afiliado *</label>
-                <input
-                  type="text"
-                  name="cedula"
-                  value={formData.cedula}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Mes *</label>
-                <select name="mes" value={formData.mes} onChange={handleInputChange} required>
-                  <option value="">Seleccionar mes</option>
-                  {meses.map((mes) => (
-                    <option key={mes} value={mes}>{mes}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Año *</label>
-                <input
-                  type="number"
-                  name="anio"
-                  value={formData.anio}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Valor *</label>
-                <input
-                  type="number"
-                  name="valor"
-                  value={formData.valor}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div style={{ display: "flex", gap: "1rem" }}>
-              <button type="submit" className="btn btn-success">
-                {editingId ? "Actualizar" : "Crear"} Cuota
-              </button>
-              <button type="button" className="btn btn-warning" onClick={resetForm}>
-                Limpiar
-              </button>
-            </div>
-          </form>
-        </div>
+        <FormularioCargaCuotas 
+          onGuardar={handleGuardarCuotas}
+          loading={loading}
+          showAlert={showAlert}
+        />
       )}
 
-      {loading ? (
-        <div className="loading">Cargando...</div>
-      ) : cuotas.length === 0 ? (
-        <div className="empty-state">
-          <p>No hay cuotas registradas</p>
-          <button className="btn btn-primary" onClick={() => setShowForm(true)}>
-            Crear la primera cuota
-          </button>
-        </div>
-      ) : (
-        <div style={{ marginTop: "2rem", overflowX: "auto" }}>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Cédula</th>
-                <th>Mes</th>
-                <th>Año</th>
-                <th>Valor</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cuotas.map((cuota) => (
-                <tr key={cuota.id_cuota}>
-                  <td>{cuota.cedula}</td>
-                  <td>{cuota.mes}</td>
-                  <td>{cuota.anio}</td>
-                  <td style={{ fontWeight: "bold", color: "var(--primary-blue)" }}>
-                    ${cuota.valor.toLocaleString()}
-                  </td>
-                  <td>
-                    <div className="action-buttons">
-                      <button
-                        className="btn btn-warning btn-sm"
-                        onClick={() => handleEdit(cuota)}
-                      >
-                        ✏️ Editar
-                      </button>
-                      <button
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleDelete(cuota.id_cuota)}
-                      >
-                        🗑️ Eliminar
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {!showForm && (
+        <>
+          <FiltrosCuotas
+            filtros={filtros}
+            onChange={handleFiltroChange}
+            onLimpiar={limpiarFiltros}
+            totalCuotas={totalCuotasMes}
+          />
+
+          <div className="cuotas-info-paginacion">
+            <div className="cuotas-info-registros">
+              📊 Mostrando {indexPrimero + 1} - {Math.min(indexUltimo, cuotasFiltradas.length)} de {cuotasFiltradas.length} registros
+              {cuotasFiltradas.length !== cuotas.length && (
+                <span className="cuotas-info-filtrados">
+                  (filtrados de {cuotas.length} totales)
+                </span>
+              )}
+            </div>
+            <div className="cuotas-selector-elementos">
+              <label>
+                <span>Mostrar:</span>
+                <select 
+                  value={elementosPorPagina} 
+                  onChange={(e) => {
+                    setElementosPorPagina(Number(e.target.value));
+                    setPaginaActual(1);
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="loading">Cargando...</div>
+          ) : cuotasFiltradas.length === 0 ? (
+            <div className="empty-state">
+              <p>
+                {cuotas.length === 0 
+                  ? "No hay cuotas registradas" 
+                  : "No se encontraron cuotas con los filtros aplicados"}
+              </p>
+              {cuotas.length === 0 && (
+                <button className="btn btn-primary" onClick={() => setShowForm(true)}>
+                  Cargar las primeras cuotas
+                </button>
+              )}
+            </div>
+          ) : (
+            <>
+              <TablaCuotas 
+                cuotas={cuotasPaginadas}
+                indexPrimero={indexPrimero}
+              />
+
+              {totalPaginas > 1 && (
+                <PaginacionControles
+                  paginaActual={paginaActual}
+                  totalPaginas={totalPaginas}
+                  onCambiarPagina={cambiarPagina}
+                />
+              )}
+            </>
+          )}
+        </>
       )}
     </div>
   );
