@@ -68,28 +68,20 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
     }
   }, [isOpen]);
 
-  // Efecto para calcular el salario cuando cambian cargo o municipio de trabajo
+  // OPTIMIZACIÓN: Efecto para calcular salario (no bloqueante)
   useEffect(() => {
     const calcularSalario = async () => {
       if (formData.id_cargo && formData.municipio_trabajo) {
         try {
           setCargandoSalario(true);
-          console.log("🔍 Buscando salario para:", {
-            id_cargo: formData.id_cargo,
-            id_municipio: formData.municipio_trabajo
-          });
-
           const response = await fetch(`/api/salarios?id_cargo=${formData.id_cargo}&id_municipio=${formData.municipio_trabajo}`);
           
           if (!response.ok) {
-            console.log("No se encontró salario para esta combinación");
             setSalarioCalculado(null);
-            setCargandoSalario(false);
             return;
           }
 
           const data = await response.json();
-          console.log("📊 Respuesta del servidor:", data);
 
           if (data.success && data.data && data.data.length > 0) {
             const salario = data.data.find(s => 
@@ -97,19 +89,12 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
               parseInt(s.id_municipio) === parseInt(formData.municipio_trabajo)
             );
             
-            if (salario) {
-              console.log("✅ Salario encontrado:", salario.salario);
-              setSalarioCalculado(salario.salario);
-            } else {
-              console.log("⚠️ No hay salario definido para esta combinación");
-              setSalarioCalculado(null);
-            }
+            setSalarioCalculado(salario ? salario.salario : null);
           } else {
-            console.log("⚠️ No hay datos en la respuesta");
             setSalarioCalculado(null);
           }
         } catch (error) {
-          console.error("❌ Error calculando salario:", error);
+          console.error("Error calculando salario:", error);
           setSalarioCalculado(null);
         } finally {
           setCargandoSalario(false);
@@ -123,9 +108,9 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
     calcularSalario();
   }, [formData.id_cargo, formData.municipio_trabajo]);
 
+  // OPTIMIZACIÓN: Cargar todas las opciones en paralelo
   const cargarOpciones = async () => {
     try {
-      console.log("Iniciando carga de opciones...");
       const endpoints = {
         religiones: "/api/religiones",
         municipios: "/api/municipios",
@@ -137,27 +122,25 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
         instituciones: "/api/instituciones",
       };
 
-      const data = {};
-      for (const [key, url] of Object.entries(endpoints)) {
+      const promesas = Object.entries(endpoints).map(async ([key, url]) => {
         try {
           const response = await fetch(url);
-          if (!response.ok) {
-            data[key] = [];
-            continue;
-          }
+          if (!response.ok) return [key, []];
+          
           const text = await response.text();
-          let result;
-          try {
-            result = JSON.parse(text);
-            data[key] = result.data || result || [];
-          } catch (e) {
-            data[key] = [];
-          }
+          const result = JSON.parse(text);
+          return [key, result.data || result || []];
         } catch (err) {
           console.error(`Error cargando ${key}:`, err);
-          data[key] = [];
+          return [key, []];
         }
-      }
+      });
+
+      const resultados = await Promise.all(promesas);
+      const data = {};
+      resultados.forEach(([key, value]) => {
+        data[key] = value;
+      });
 
       setOpciones(data);
     } catch (error) {
@@ -227,8 +210,15 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
     }
   };
 
+  // OPTIMIZACIÓN: Validar tamaño antes de convertir
   const convertirArchivoABase64 = (file) => {
     return new Promise((resolve, reject) => {
+      // Validar tamaño máximo (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        reject(new Error('El archivo es demasiado grande (máx 5MB)'));
+        return;
+      }
+
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = () => {
@@ -244,23 +234,17 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
     
     if (type === "file" && files && files.length > 0) {
       const file = files[0];
-      console.log(`📎 Procesando archivo: ${name}`, {
-        nombre: file.name,
-        tipo: file.type,
-        tamaño: file.size
-      });
 
       try {
         const base64 = await convertirArchivoABase64(file);
-        console.log(`✅ Archivo ${name} convertido a Base64 (${base64.length} caracteres)`);
-        
         setFormData((prev) => ({
           ...prev,
           [name]: base64,
         }));
       } catch (error) {
-        console.error(`❌ Error convirtiendo archivo ${name}:`, error);
-        alert(`Error al procesar el archivo ${name}`);
+        console.error(`Error convirtiendo archivo ${name}:`, error);
+        alert(error.message || `Error al procesar el archivo ${name}`);
+        e.target.value = '';
       }
     } else {
       setFormData((prev) => ({
@@ -344,6 +328,7 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
     });
     setOtroCargo({ nombre_cargo: "", fecha_inicio: "", fecha_fin: "" });
     setSalarioCalculado(null);
+    setCargandoSalario(false);
     setActiveTab("personales");
     setCompletedTabs({
       personales: false,
@@ -471,6 +456,7 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
                     onChange={handleChange}
                     accept="image/*"
                   />
+                  <small style={{ color: "#666", fontSize: "12px" }}>Máx 5MB</small>
                 </div>
               </div>
 
@@ -526,7 +512,6 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
                 </div>
               </fieldset>
 
-              {/* Botones de navegación */}
               <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1.5rem", gap: "0.5rem" }}>
                 <button
                   type="button"
@@ -608,7 +593,6 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
                 </div>
               </div>
 
-              {/* Botones de navegación */}
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1.5rem" }}>
                 <button
                   type="button"
@@ -759,6 +743,7 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
                       onChange={handleChange}
                       accept=".pdf,.doc,.docx"
                     />
+                    <small style={{ color: "#666", fontSize: "12px" }}>Máx 5MB</small>
                   </div>
                 </div>
               </fieldset>
@@ -796,6 +781,7 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
                       onChange={handleChange}
                       accept=".pdf,.doc,.docx"
                     />
+                    <small style={{ color: "#666", fontSize: "12px" }}>Máx 5MB</small>
                   </div>
                 </div>
               </fieldset>
@@ -952,7 +938,6 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
                   </div>
                 )}
               </fieldset>
-
 
               {/* Botones de navegación */}
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1.5rem" }}>
