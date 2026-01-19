@@ -1,30 +1,21 @@
 import db from "../config/db.js";
 
 // OPTIMIZACIÓN: Query más ligera para listado (sin BLOB de fotos)
-export const getAfiliados = async () => {
+export const getAfiliados = async (departamento) => {
   const query = `
-    SELECT a.id_afiliado,
-           a.cedula,
-           a.nombres,
-           a.apellidos,
-           a.id_cargo,
-           a.id_institucion,
-           c.nombre_cargo,
-           ie.nombre_institucion
+    SELECT a.id_afiliado, a.cedula, a.nombres, a.apellidos,
+           a.id_cargo, a.id_institucion,
+           c.nombre_cargo, ie.nombre_institucion,
+           m.departamento
     FROM afiliados a
     LEFT JOIN cargos c ON a.id_cargo = c.id_cargo
     LEFT JOIN instituciones_educativas ie ON a.id_institucion = ie.id_institucion
+    LEFT JOIN municipios m ON a.municipio_trabajo = m.id_municipio
+    WHERE m.departamento = ?
     ORDER BY a.id_afiliado DESC
   `;
   
-  console.log('📊 Cargando lista de afiliados (optimizada)...');
-  const inicio = Date.now();
-  
-  const [afiliados] = await db.query(query);
-  
-  const tiempo = Date.now() - inicio;
-  console.log(`✅ ${afiliados.length} afiliados cargados en ${tiempo}ms`);
-  
+  const [afiliados] = await db.query(query, [departamento]);
   return afiliados;
 };
 

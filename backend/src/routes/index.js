@@ -1,16 +1,25 @@
+// backend/src/routes/index.js
 import express from "express";
 
-// Importar todas las rutas
+// Importar rutas de auth
+import authRoutes from "./authRoutes.js";
+
+// Importar middleware
+import { verificarToken, filtrarPorDepartamento } from "../middleware/auth.js";
+
+// Importar todas las demás rutas
 let afiliadsRoutes, cargosRoutes, cuotasRoutes, salariosDepartamentosRoutes;
 let religionesRoutes, municipiosRoutes, epsRoutes, arlRoutes, pensionRoutes, cesantiasRoutes, institucionesRoutes;
 let actasRoutes, otrosCargosRoutes, rectoresRoutes;
 let departamentosRoutes;
+
 try {
   departamentosRoutes = (await import("./departamentosRoutes.js")).default;
   console.log("✅ departamentosRoutes importado");
 } catch (err) {
   console.error("❌ Error importando departamentosRoutes:", err.message);
 }
+
 try {
   afiliadsRoutes = (await import("./afiliadsRoutes.js")).default;
   console.log("✅ afiliadsRoutes importado");
@@ -111,7 +120,14 @@ try {
 
 const router = express.Router();
 
-// Registrar todas las rutas
+// ⚠️ RUTAS PÚBLICAS (SIN AUTENTICACIÓN)
+router.use("/auth", authRoutes);
+
+// ⚠️ TODAS LAS DEMÁS RUTAS REQUIEREN AUTENTICACIÓN
+router.use(verificarToken);
+router.use(filtrarPorDepartamento);
+
+// Registrar rutas protegidas
 if (afiliadsRoutes) router.use("/afiliados", afiliadsRoutes);
 if (cargosRoutes) router.use("/cargos", cargosRoutes);
 if (cuotasRoutes) router.use("/cuotas", cuotasRoutes);
@@ -134,6 +150,6 @@ if (rectoresRoutes) router.use("/rectores", rectoresRoutes);
 // Rutas de departamentos
 if (departamentosRoutes) router.use("/departamentos", departamentosRoutes);
 
-console.log("✅ Todas las rutas cargadas");
+console.log("✅ Todas las rutas cargadas (con autenticación)");
 
 export default router;

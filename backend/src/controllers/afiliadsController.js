@@ -2,10 +2,10 @@ import * as afiliadsService from "../services/afiliadsService.js";
 
 export const getAfiliados = async (req, res) => {
   try {
-    const afiliados = await afiliadsService.getAfiliados();
+    // req.departamento viene del middleware
+    const afiliados = await afiliadsService.getAfiliados(req.departamento);
     res.json({ success: true, data: afiliados });
   } catch (error) {
-    console.error("Error en getAfiliados:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
