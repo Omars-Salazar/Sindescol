@@ -83,6 +83,26 @@ export default function Sidebar() {
 
         {/* Menu Items */}
         <div className="sidebar-menu">
+          {/* Sección de Información */}
+          <div className="menu-section">
+            <h4 className="menu-section-title">Información</h4>
+            
+            <button
+              onClick={() => {
+                handleNavegar('/informacion-presidencias');
+                setIsOpen(false);
+              }}
+              className="menu-item"
+            >
+              <span className="menu-icon">🏛️</span>
+              <div className="menu-content">
+                <div className="menu-title">Información de Presidencias</div>
+                <div className="menu-subtitle">Directorio de contacto</div>
+              </div>
+            </button>
+          </div>
+
+          {/* Sección de Administración (solo para presidencias) */}
           {tienePermisoGestionUsuarios && (
             <div className="menu-section">
               <h4 className="menu-section-title">Administración</h4>

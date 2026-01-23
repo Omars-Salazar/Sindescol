@@ -33,6 +33,14 @@ export default function Salarios() {
     fetchMunicipios();
   }, []);
 
+  // Limpiar formulario cuando se cierra
+  useEffect(() => {
+    if (!showForm) {
+      setFormData({ id_cargo: "", id_municipio: "", salario: "" });
+      setEditingId(null);
+    }
+  }, [showForm]);
+
   const fetchSalarios = async () => {
     setLoading(true);
     try {

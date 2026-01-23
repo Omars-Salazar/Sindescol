@@ -63,6 +63,13 @@ export const ModalEditarAfiliado = ({ isOpen, onClose, afiliadoId, onSubmit }) =
     }
   }, [isOpen, afiliadoId]);
 
+  // Limpiar formulario cuando se cierra el modal
+  useEffect(() => {
+    if (!isOpen) {
+      resetForm();
+    }
+  }, [isOpen]);
+
   // Calcular salario cuando cambie el cargo o municipio en edición
   useEffect(() => {
     const calcularSalario = async () => {
@@ -304,6 +311,44 @@ export const ModalEditarAfiliado = ({ isOpen, onClose, afiliadoId, onSubmit }) =
       ...prev,
       otros_cargos: prev.otros_cargos.filter((_, i) => i !== index),
     }));
+  };
+
+  const resetForm = () => {
+    setFormData({
+      cedula: "",
+      nombres: "",
+      apellidos: "",
+      fecha_nacimiento: "",
+      religion_id: "",
+      foto_afiliado: null,
+      direccion_domicilio: "",
+      municipio_domicilio: "",
+      direccion_residencia: "",
+      municipio_residencia: "",
+      id_eps: "",
+      id_arl: "",
+      id_pension: "",
+      id_cesantias: "",
+      id_cargo: "",
+      fecha_afiliacion: "",
+      municipio_trabajo: "",
+      id_institucion: "",
+      correo_institucional: "",
+      telefono_institucional: "",
+      direccion_institucion: "",
+      nombre_rector: "",
+      tipo_documento: "",
+      numero_resolucion: "",
+      fecha_resolucion: "",
+      archivo_nombramiento: null,
+      numero_acta: "",
+      fecha_acta: "",
+      archivo_posesion: null,
+      otros_cargos: []
+    });
+    setOtroCargo({ nombre_cargo: "", fecha_inicio: "", fecha_fin: "" });
+    setSalarioCalculado(null);
+    setActiveTab("personales");
   };
 
   const handleSubmit = (e) => {

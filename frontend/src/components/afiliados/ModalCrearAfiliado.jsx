@@ -69,6 +69,13 @@ export const ModalCrearAfiliado = ({ isOpen, onClose, onSubmit }) => {
     }
   }, [isOpen]);
 
+  // Limpiar formulario cuando se cierra el modal
+  useEffect(() => {
+    if (!isOpen) {
+      resetForm();
+    }
+  }, [isOpen]);
+
   // OPTIMIZACIÓN: Efecto para calcular salario (no bloqueante)
   useEffect(() => {
   const calcularSalario = async () => {

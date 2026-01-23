@@ -8,7 +8,8 @@ export default function Cargos() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [alert, setAlert] = useState(null);
-  const [showMunicipios, setShowMunicipios] = useState({});
+  const [cargoExpandido, setCargoExpandido] = useState(null);
+  const [municipiosPorCargo, setMunicipiosPorCargo] = useState({});
   const [formData, setFormData] = useState({ 
     nombre_cargo: "", 
     salario: "",
@@ -19,6 +20,14 @@ export default function Cargos() {
     fetchCargos();
     fetchMunicipios();
   }, []);
+
+  // Limpiar formulario cuando se cierra
+  useEffect(() => {
+    if (!showForm) {
+      setFormData({ nombre_cargo: "", salario: "", municipios: [] });
+      setEditingId(null);
+    }
+  }, [showForm]);
 
   const fetchCargos = async () => {
     setLoading(true);
@@ -149,18 +158,26 @@ export default function Cargos() {
   };
 
   const toggleMunicipios = async (id_cargo) => {
-    if (showMunicipios[id_cargo]) {
-      // Si ya están mostrados, ocultarlos
-      setShowMunicipios(prev => ({ ...prev, [id_cargo]: null }));
+    if (cargoExpandido === id_cargo) {
+      // Si el cargo ya está expandido, colapsarlo
+      setCargoExpandido(null);
     } else {
-      // Si no están mostrados, cargarlos y mostrarlos
-      try {
-        const { data } = await api.getMunicipiosByCargo(id_cargo);
-        if (data.success) {
-          setShowMunicipios(prev => ({ ...prev, [id_cargo]: data.data }));
+      // Si no está expandido, expandir este y colapsar cualquier otro
+      setCargoExpandido(id_cargo);
+      
+      // Cargar municipios si no existen
+      if (!municipiosPorCargo[id_cargo]) {
+        try {
+          const { data } = await api.getMunicipiosByCargo(id_cargo);
+          if (data.success) {
+            setMunicipiosPorCargo(prev => ({
+              ...prev,
+              [id_cargo]: data.data
+            }));
+          }
+        } catch (error) {
+          console.error("Error cargando municipios:", error);
         }
-      } catch (error) {
-        console.error("Error cargando municipios:", error);
       }
     }
   };
@@ -303,68 +320,76 @@ export default function Cargos() {
         </div>
       ) : (
         <div style={{ marginTop: "2rem", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", gap: "1.5rem" }}>
-          {cargos.map((cargo) => (
-            <div key={cargo.id_cargo} className="card">
-              <h4 style={{ color: "var(--primary-blue)", marginBottom: "1rem" }}>
-                {cargo.nombre_cargo}
-              </h4>
-              
-              <button 
-                className="btn btn-primary btn-sm"
-                onClick={() => toggleMunicipios(cargo.id_cargo)}
-                style={{ marginBottom: "1rem", width: "100%" }}
-              >
-                {showMunicipios[cargo.id_cargo] ? "▼ Ocultar" : "▶ Ver"} Municipios y Salarios
-              </button>
+          {cargos.map((cargo) => {
+            const estaExpandido = cargoExpandido === cargo.id_cargo;
+            
+            return (
+              <div key={cargo.id_cargo} className="card">
+                <h4 style={{ color: "var(--primary-blue)", marginBottom: "1rem" }}>
+                  {cargo.nombre_cargo}
+                </h4>
+                
+                <button 
+                  className="btn btn-primary btn-sm"
+                  onClick={() => toggleMunicipios(cargo.id_cargo)}
+                  style={{ marginBottom: "1rem", width: "100%" }}
+                >
+                  {estaExpandido ? "▼ Ocultar" : "▶ Ver"} Municipios y Salarios
+                </button>
 
-              {showMunicipios[cargo.id_cargo] && (
-                <div style={{ 
-                  background: "#f9f9f9", 
-                  padding: "1rem", 
-                  borderRadius: "6px",
-                  marginBottom: "1rem",
-                  maxHeight: "200px",
-                  overflowY: "auto"
-                }}>
-                  {showMunicipios[cargo.id_cargo].length > 0 ? (
-                    showMunicipios[cargo.id_cargo].map((item, index) => (
-                      <div key={index} style={{ 
-                        padding: "0.5rem",
-                        borderBottom: index < showMunicipios[cargo.id_cargo].length - 1 ? "1px solid #ddd" : "none"
-                      }}>
-                        <strong>{item.nombre_municipio}</strong>
-                        <br />
-                        <small style={{ color: "#666" }}>{item.departamento}</small>
-                        <br />
-                        <span style={{ color: "var(--primary-blue)", fontWeight: "bold" }}>
-                          ${item.salario?.toLocaleString()}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <p style={{ color: "#999", textAlign: "center", margin: 0 }}>
-                      Sin municipios asociados
-                    </p>
-                  )}
+                {estaExpandido && (
+                  <div style={{ 
+                    background: "#f9f9f9", 
+                    padding: "1rem", 
+                    borderRadius: "6px",
+                    marginBottom: "1rem",
+                    maxHeight: "200px",
+                    overflowY: "auto"
+                  }}>
+                    {municipiosPorCargo[cargo.id_cargo] ? (
+                      municipiosPorCargo[cargo.id_cargo].length > 0 ? (
+                        municipiosPorCargo[cargo.id_cargo].map((item, index) => (
+                          <div key={index} style={{ 
+                            padding: "0.5rem",
+                            borderBottom: index < municipiosPorCargo[cargo.id_cargo].length - 1 ? "1px solid #ddd" : "none"
+                          }}>
+                            <strong>{item.nombre_municipio}</strong>
+                            <br />
+                            <small style={{ color: "#666" }}>{item.departamento}</small>
+                            <br />
+                            <span style={{ color: "var(--primary-blue)", fontWeight: "bold" }}>
+                              ${item.salario?.toLocaleString()}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <p style={{ color: "#999", textAlign: "center", margin: 0 }}>
+                          Sin municipios asociados
+                        </p>
+                      )
+                    ) : (
+                      <div className="loading-municipios">Cargando municipios...</div>
+                    )}
+                  </div>
+                )}
+
+                <div className="action-buttons">
+                  <button
+                    className="btn btn-warning btn-sm"
+                    onClick={() => handleEdit(cargo)}
+                  >
+                    ✏️ Editar
+                  </button>
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleDelete(cargo.id_cargo)}
+                  >
+                    🗑️ Eliminar
+                  </button>
                 </div>
-              )}
-
-              <div className="action-buttons">
-                <button
-                  className="btn btn-warning btn-sm"
-                  onClick={() => handleEdit(cargo)}
-                >
-                  ✏️ Editar
-                </button>
-                <button
-                  className="btn btn-danger btn-sm"
-                  onClick={() => handleDelete(cargo.id_cargo)}
-                >
-                  🗑️ Eliminar
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

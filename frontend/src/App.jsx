@@ -10,6 +10,7 @@ import Cuotas from "./pages/Cuotas";
 import Salarios from "./pages/Salarios";
 import Departamentos from "./pages/Departamentos";
 import GestionUsuarios from "./pages/GestionUsuarios";
+import InformacionPresidencias from "./pages/InformacionPresidencias";
 import "./styles/global.css";
 
 // Componente para proteger rutas
@@ -46,6 +47,7 @@ function App() {
                   <Route path="/salarios" element={<Salarios />} />
                   <Route path="/departamentos" element={<Departamentos />} />
                   <Route path="/gestion-usuarios" element={<GestionUsuarios />} />
+                  <Route path="/informacion-presidencias" element={<InformacionPresidencias />} />
                 </Routes>
               </>
             </ProtectedRoute>

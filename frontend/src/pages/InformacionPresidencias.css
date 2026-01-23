@@ -1,0 +1,304 @@
+/* frontend/src/pages/InformacionPresidencias.css */
+
+.filtros-presidencias {
+  margin-top: 2rem;
+}
+
+.info-resultados {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.info-resultados p {
+  margin: 0;
+  color: var(--text-dark);
+  font-weight: 500;
+}
+
+.presidencias-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.presidencia-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.presidencia-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-color: var(--primary-blue);
+}
+
+.presidencia-header {
+  background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+}
+
+.presidencia-icono {
+  font-size: 3rem;
+  background: white;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 4px solid #FFC107;
+}
+
+.presidencia-rol {
+  width: 100%;
+  text-align: center;
+}
+
+.badge-rol {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-rol.presidencia_nacional {
+  background: linear-gradient(135deg, #FFE082 0%, #FFD54F 100%);
+  color: #F57F17;
+  border: 2px solid #FFC107;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+}
+
+.badge-rol.presidencia {
+  background: linear-gradient(135deg, #90CAF9 0%, #64B5F6 100%);
+  color: #0D47A1;
+  border: 2px solid #1976D2;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+}
+
+.presidencia-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.presidencia-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #E0E0E0;
+}
+
+.presidencia-info-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.info-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-icon {
+  font-size: 1.2rem;
+}
+
+.info-value {
+  font-size: 1rem;
+  color: #333;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.email-value {
+  color: var(--primary-blue);
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+}
+
+.celular-value {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: var(--primary-blue);
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.departamento-value {
+  color: var(--primary-blue);
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.presidencia-estado {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.estado-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.estado-badge.activo {
+  background: linear-gradient(135deg, #C8E6C9 0%, #A5D6A7 100%);
+  color: #1B5E20;
+  border: 2px solid #4CAF50;
+}
+
+.estado-badge.inactivo {
+  background: linear-gradient(135deg, #FFCDD2 0%, #EF9A9A 100%);
+  color: #B71C1C;
+  border: 2px solid #F44336;
+}
+
+.presidencia-footer {
+  padding: 1rem 1.5rem;
+  background: #F5F5F5;
+  border-top: 2px solid #E0E0E0;
+}
+
+.acciones-contacto {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.btn-contacto {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-contacto.email {
+  background: linear-gradient(135deg, #EA4335 0%, #C5221F 100%);
+  color: white;
+  border-color: #D32F2F;
+}
+
+.btn-contacto.email:hover {
+  background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(234, 67, 53, 0.4);
+}
+
+.btn-contacto.whatsapp {
+  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+  color: white;
+  border-color: #25D366;
+}
+
+.btn-contacto.whatsapp:hover {
+  background: linear-gradient(135deg, #128C7E 0%, #075E54 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+}
+
+/* Loading & Empty States */
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-light);
+  font-size: 1.1rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+  color: var(--text-light);
+  margin-bottom: 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .presidencias-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .presidencias-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .presidencia-icono {
+    width: 70px;
+    height: 70px;
+    font-size: 2.5rem;
+  }
+
+  .acciones-contacto {
+    flex-direction: column;
+  }
+
+  .btn-contacto {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .presidencia-header {
+    padding: 1rem;
+  }
+
+  .presidencia-body {
+    padding: 1rem;
+  }
+
+  .presidencia-icono {
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+  }
+
+  .badge-rol {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
