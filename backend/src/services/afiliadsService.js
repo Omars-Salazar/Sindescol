@@ -1,26 +1,44 @@
 import db from "../config/db.js";
 
-// OPTIMIZACIÓN: Query más ligera para listado (sin BLOB de fotos)
-export const getAfiliados = async (departamento) => {
-  const query = `
+// ============================================
+// FUNCIÓN PARA OBTENER AFILIADOS CON FILTRO POR DEPARTAMENTO
+// ============================================
+export const getAfiliados = async (departamento, rol) => {
+  let query = `
     SELECT a.id_afiliado, a.cedula, a.nombres, a.apellidos,
            a.id_cargo, a.id_institucion,
            c.nombre_cargo, ie.nombre_institucion,
-           m.departamento
+           m.departamento, m.nombre_municipio
     FROM afiliados a
     LEFT JOIN cargos c ON a.id_cargo = c.id_cargo
     LEFT JOIN instituciones_educativas ie ON a.id_institucion = ie.id_institucion
     LEFT JOIN municipios m ON a.municipio_trabajo = m.id_municipio
-    WHERE m.departamento = ?
-    ORDER BY a.id_afiliado DESC
   `;
   
-  console.log('📊 Cargando afiliados para departamento:', departamento);
-  const [afiliados] = await db.query(query, [departamento]);
-  console.log('✅ Afiliados encontrados:', afiliados.length);
+  const params = [];
+  
+  // FILTRADO POR ROL:
+  // - presidencia_nacional: ve TODO (sin filtros)
+  // - presidencia: solo su departamento
+  // - usuario: solo su departamento
+  if (rol !== 'presidencia_nacional' && departamento) {
+    query += ` WHERE m.departamento = ?`;
+    params.push(departamento);
+    console.log(`📊 [${rol}] Filtrando afiliados por departamento:`, departamento);
+  } else {
+    console.log(`📊 [presidencia_nacional] Cargando TODOS los afiliados`);
+  }
+  
+  query += ` ORDER BY a.id_afiliado DESC`;
+  
+  const [afiliados] = await db.query(query, params);
+  console.log(`✅ Afiliados encontrados: ${afiliados.length}`);
   return afiliados;
 };
 
+// ============================================
+// OBTENER AFILIADO POR ID (sin filtro de departamento - detalles completos)
+// ============================================
 export const getAfiliadoById = async (id) => {
   const query = `
     SELECT a.*, 
@@ -29,6 +47,7 @@ export const getAfiliadoById = async (id) => {
            md.nombre_municipio as municipio_domicilio_nombre,
            mr.nombre_municipio as municipio_residencia_nombre,
            mt.nombre_municipio as municipio_trabajo_nombre,
+           mt.departamento as departamento_trabajo,
            e.nombre_eps,
            ar.nombre_arl,
            p.nombre_pension,
@@ -59,54 +78,16 @@ export const getAfiliadoById = async (id) => {
   return afiliados[0];
 };
 
-export const getAfiliadoByCedula = async (cedula) => {
-  const query = `
-    SELECT a.*, 
-           c.nombre_cargo,
-           r.nombre_religion,
-           md.nombre_municipio as municipio_domicilio_nombre,
-           mr.nombre_municipio as municipio_residencia_nombre,
-           mt.nombre_municipio as municipio_trabajo_nombre,
-           e.nombre_eps,
-           ar.nombre_arl,
-           p.nombre_pension,
-           ce.nombre_cesantias,
-           ie.nombre_institucion,
-           ie.correo_institucional,
-           ie.telefono_institucional,
-           ie.direccion_institucion
-    FROM afiliados a
-    LEFT JOIN cargos c ON a.id_cargo = c.id_cargo
-    LEFT JOIN religiones r ON a.religion_id = r.id_religion
-    LEFT JOIN municipios md ON a.municipio_domicilio = md.id_municipio
-    LEFT JOIN municipios mr ON a.municipio_residencia = mr.id_municipio
-    LEFT JOIN municipios mt ON a.municipio_trabajo = mt.id_municipio
-    LEFT JOIN entidades_eps e ON a.id_eps = e.id_eps
-    LEFT JOIN entidades_arl ar ON a.id_arl = ar.id_arl
-    LEFT JOIN entidades_pension p ON a.id_pension = p.id_pension
-    LEFT JOIN entidades_cesantias ce ON a.id_cesantias = ce.id_cesantias
-    LEFT JOIN instituciones_educativas ie ON a.id_institucion = ie.id_institucion
-    WHERE a.cedula = ?
-  `;
-  const [afiliados] = await db.query(query, [cedula]);
-  
-  if (afiliados[0] && afiliados[0].foto_afiliado) {
-    afiliados[0].foto_afiliado = afiliados[0].foto_afiliado.toString('base64');
-  }
-  
-  return afiliados[0];
-};
-
 // ============================================
-// FUNCIÓN OPTIMIZADA DE CREACIÓN
+// CREAR AFILIADO CON VALIDACIÓN DE DEPARTAMENTO
 // ============================================
-export const createAfiliado = async (data, departamento) => {
+export const createAfiliado = async (data, departamento, rol) => {
   const connection = await db.getConnection();
   
   try {
     await connection.beginTransaction();
 
-    // Validar que el municipio_trabajo pertenece al departamento del usuario
+    // VALIDAR QUE EL MUNICIPIO DE TRABAJO PERTENECE AL DEPARTAMENTO DEL USUARIO
     if (data.municipio_trabajo) {
       const [municipios] = await connection.query(
         'SELECT departamento FROM municipios WHERE id_municipio = ?',
@@ -116,11 +97,18 @@ export const createAfiliado = async (data, departamento) => {
       console.log('🔍 Validación municipio:', {
         id_municipio: data.municipio_trabajo,
         municipioEnBD: municipios[0],
-        departamentoUsuario: departamento
+        departamentoUsuario: departamento,
+        rol: rol
       });
       
-      if (municipios.length === 0 || municipios[0].departamento !== departamento) {
-        throw new Error('El municipio de trabajo no pertenece a tu departamento');
+      // SOLO presidencia_nacional puede crear afiliados en cualquier departamento
+      if (rol !== 'presidencia_nacional') {
+        if (municipios.length === 0) {
+          throw new Error('Municipio no encontrado');
+        }
+        if (municipios[0].departamento !== departamento) {
+          throw new Error(`No tienes permiso para crear afiliados en el departamento ${municipios[0].departamento}. Solo puedes crear afiliados en ${departamento}`);
+        }
       }
     } else {
       throw new Error('Municipio de trabajo es requerido');
@@ -154,13 +142,6 @@ export const createAfiliado = async (data, departamento) => {
     const fotoBuffer = (foto_afiliado && typeof foto_afiliado === 'string' && foto_afiliado.length > 0) 
       ? Buffer.from(foto_afiliado, 'base64') 
       : null;
-    
-    console.log('📷 Procesando foto afiliado:', {
-      existe: !!foto_afiliado,
-      tipo: typeof foto_afiliado,
-      longitud: foto_afiliado?.length || 0,
-      buffer: fotoBuffer ? 'creado' : 'null'
-    });
 
     // 1. Insertar afiliado
     const queryAfiliado = `
@@ -182,11 +163,11 @@ export const createAfiliado = async (data, departamento) => {
     const idAfiliado = resultAfiliado.insertId;
 
     // ============================================
-    // OPTIMIZACIÓN: TODAS LAS OPERACIONES EN PARALELO
+    // OPERACIONES EN PARALELO
     // ============================================
     const insertPromises = [];
 
-    // 2. Actualizar institución educativa (si se proporcionan datos)
+    // 2. Actualizar institución educativa
     if (id_institucion && (correo_institucional || telefono_institucional || direccion_institucion)) {
       const queryUpdateInstitucion = `
         UPDATE instituciones_educativas 
@@ -203,20 +184,13 @@ export const createAfiliado = async (data, departamento) => {
           id_institucion
         ])
       );
-      console.log('📝 Programada actualización de institución');
     }
 
-    // 3. Insertar acta de nombramiento (si hay datos)
+    // 3. Insertar acta de nombramiento
     if (tipo_documento || numero_resolucion || fecha_resolucion || archivo_nombramiento) {
       const archivoNombramientoBuffer = (archivo_nombramiento && typeof archivo_nombramiento === 'string' && archivo_nombramiento.length > 0)
         ? Buffer.from(archivo_nombramiento, 'base64') 
         : null;
-      
-      console.log('📄 Procesando archivo nombramiento:', {
-        existe: !!archivo_nombramiento,
-        longitud: archivo_nombramiento?.length || 0,
-        buffer: archivoNombramientoBuffer ? 'creado' : 'null'
-      });
       
       const queryNombramiento = `
         INSERT INTO actas_nombramiento 
@@ -232,20 +206,13 @@ export const createAfiliado = async (data, departamento) => {
           archivoNombramientoBuffer
         ])
       );
-      console.log('📝 Programada inserción de acta nombramiento');
     }
 
-    // 4. Insertar acta de posesión (si hay datos)
+    // 4. Insertar acta de posesión
     if (numero_acta || fecha_acta || archivo_posesion) {
       const archivoPosesionBuffer = (archivo_posesion && typeof archivo_posesion === 'string' && archivo_posesion.length > 0)
         ? Buffer.from(archivo_posesion, 'base64') 
         : null;
-      
-      console.log('📄 Procesando archivo posesión:', {
-        existe: !!archivo_posesion,
-        longitud: archivo_posesion?.length || 0,
-        buffer: archivoPosesionBuffer ? 'creado' : 'null'
-      });
       
       const queryPosesion = `
         INSERT INTO actas_posesion 
@@ -260,11 +227,9 @@ export const createAfiliado = async (data, departamento) => {
           archivoPosesionBuffer
         ])
       );
-      console.log('📝 Programada inserción de acta posesión');
     }
 
-    // 5. Insertar rector (si se proporciona)
-    // OPTIMIZACIÓN: Usar INSERT IGNORE con subquery
+    // 5. Insertar rector
     if (nombre_rector && id_institucion) {
       const queryRector = `
         INSERT IGNORE INTO rectores (nombre_rector, id_institucion)
@@ -276,11 +241,9 @@ export const createAfiliado = async (data, departamento) => {
       insertPromises.push(
         connection.query(queryRector, [nombre_rector, id_institucion, id_institucion])
       );
-      console.log('📝 Programada inserción de rector');
     }
 
-    // 6. Insertar otros cargos en BATCH (si hay datos)
-    // OPTIMIZACIÓN: Una sola query en lugar de múltiples
+    // 6. Insertar otros cargos en BATCH
     if (otros_cargos && Array.isArray(otros_cargos) && otros_cargos.length > 0) {
       const cargosValidos = otros_cargos.filter(cargo => cargo.nombre_cargo);
       
@@ -300,25 +263,13 @@ export const createAfiliado = async (data, departamento) => {
         insertPromises.push(
           connection.query(queryOtroCargo, [valoresCargos])
         );
-        console.log(`📝 Programada inserción de ${cargosValidos.length} otros cargos en batch`);
       }
     }
 
-    // ============================================
-    // EJECUTAR TODAS LAS OPERACIONES EN PARALELO
-    // ============================================
-    console.log(`⚡ Ejecutando ${insertPromises.length} operaciones en paralelo...`);
-    const inicio = Date.now();
-    
     await Promise.all(insertPromises);
-    
-    const tiempo = Date.now() - inicio;
-    console.log(`✅ Operaciones completadas en ${tiempo}ms`);
-
     await connection.commit();
     
-    // OPTIMIZACIÓN: Retornar datos básicos sin hacer otra consulta pesada
-    console.log('✅ Afiliado creado exitosamente:', { id_afiliado: idAfiliado, cedula, nombres, apellidos });
+    console.log(`✅ [${rol}] Afiliado creado en ${departamento || 'TODOS'}:`, { id_afiliado: idAfiliado, cedula, nombres, apellidos });
     
     return { 
       id_afiliado: idAfiliado, 
@@ -326,7 +277,7 @@ export const createAfiliado = async (data, departamento) => {
       nombres, 
       apellidos,
       id_cargo,
-      nombre_cargo: null // Se puede agregar si es necesario
+      nombre_cargo: null
     };
 
   } catch (error) {
@@ -338,21 +289,45 @@ export const createAfiliado = async (data, departamento) => {
   }
 };
 
-export const updateAfiliado = async (id, data, departamento) => {
+// ============================================
+// ACTUALIZAR AFILIADO CON VALIDACIÓN DE DEPARTAMENTO
+// ============================================
+export const updateAfiliado = async (id, data, departamento, rol) => {
   const connection = await db.getConnection();
   
   try {
     await connection.beginTransaction();
 
-    // Validar que el municipio_trabajo pertenece al departamento del usuario
+    // VALIDAR QUE EL AFILIADO PERTENECE AL DEPARTAMENTO DEL USUARIO
+    const [afiliadoActual] = await connection.query(`
+      SELECT m.departamento 
+      FROM afiliados a
+      LEFT JOIN municipios m ON a.municipio_trabajo = m.id_municipio
+      WHERE a.id_afiliado = ?
+    `, [id]);
+
+    if (afiliadoActual.length === 0) {
+      throw new Error('Afiliado no encontrado');
+    }
+
+    // Solo presidencia_nacional puede editar afiliados de cualquier departamento
+    if (rol !== 'presidencia_nacional') {
+      if (afiliadoActual[0].departamento !== departamento) {
+        throw new Error(`No tienes permiso para editar este afiliado. Pertenece a ${afiliadoActual[0].departamento}`);
+      }
+    }
+
+    // VALIDAR NUEVO MUNICIPIO DE TRABAJO (si se está cambiando)
     if (data.municipio_trabajo) {
       const [municipios] = await connection.query(
         'SELECT departamento FROM municipios WHERE id_municipio = ?',
         [data.municipio_trabajo]
       );
       
-      if (municipios.length === 0 || municipios[0].departamento !== departamento) {
-        throw new Error('El municipio de trabajo no pertenece a tu departamento');
+      if (rol !== 'presidencia_nacional') {
+        if (municipios.length === 0 || municipios[0].departamento !== departamento) {
+          throw new Error(`El nuevo municipio debe pertenecer a ${departamento}`);
+        }
       }
     }
 
@@ -386,24 +361,46 @@ export const updateAfiliado = async (id, data, departamento) => {
     }
 
     await connection.commit();
+    console.log(`✅ [${rol}] Afiliado actualizado:`, id);
     return getAfiliadoById(id);
 
   } catch (error) {
     await connection.rollback();
-    console.error('Error en updateAfiliado:', error);
+    console.error('❌ Error en updateAfiliado:', error);
     throw error;
   } finally {
     connection.release();
   }
 };
 
-export const deleteAfiliado = async (id) => {
+// ============================================
+// ELIMINAR AFILIADO CON VALIDACIÓN DE DEPARTAMENTO
+// ============================================
+export const deleteAfiliado = async (id, departamento, rol) => {
   const connection = await db.getConnection();
   
   try {
     await connection.beginTransaction();
 
-    // OPTIMIZACIÓN: Ejecutar eliminaciones en paralelo
+    // VALIDAR QUE EL AFILIADO PERTENECE AL DEPARTAMENTO DEL USUARIO
+    const [afiliadoActual] = await connection.query(`
+      SELECT m.departamento 
+      FROM afiliados a
+      LEFT JOIN municipios m ON a.municipio_trabajo = m.id_municipio
+      WHERE a.id_afiliado = ?
+    `, [id]);
+
+    if (afiliadoActual.length === 0) {
+      throw new Error('Afiliado no encontrado');
+    }
+
+    // Solo presidencia_nacional puede eliminar afiliados de cualquier departamento
+    if (rol !== 'presidencia_nacional') {
+      if (afiliadoActual[0].departamento !== departamento) {
+        throw new Error(`No tienes permiso para eliminar este afiliado. Pertenece a ${afiliadoActual[0].departamento}`);
+      }
+    }
+
     await Promise.all([
       connection.query('DELETE FROM actas_nombramiento WHERE id_afiliado = ?', [id]),
       connection.query('DELETE FROM actas_posesion WHERE id_afiliado = ?', [id]),
@@ -414,28 +411,39 @@ export const deleteAfiliado = async (id) => {
     const [result] = await connection.query('DELETE FROM afiliados WHERE id_afiliado = ?', [id]);
     
     await connection.commit();
+    console.log(`✅ [${rol}] Afiliado eliminado:`, id);
     return result.affectedRows > 0;
 
   } catch (error) {
     await connection.rollback();
-    console.error('Error en deleteAfiliado:', error);
+    console.error('❌ Error en deleteAfiliado:', error);
     throw error;
   } finally {
     connection.release();
   }
 };
 
-export const searchAfiliados = async (searchTerm) => {
-  const query = `
+export const searchAfiliados = async (searchTerm, departamento, rol) => {
+  let query = `
     SELECT a.*, 
            c.nombre_cargo,
-           ie.nombre_institucion
+           ie.nombre_institucion,
+           m.departamento
     FROM afiliados a
     LEFT JOIN cargos c ON a.id_cargo = c.id_cargo
     LEFT JOIN instituciones_educativas ie ON a.id_institucion = ie.id_institucion
-    WHERE a.cedula LIKE ? OR a.nombres LIKE ? OR a.apellidos LIKE ?
+    LEFT JOIN municipios m ON a.municipio_trabajo = m.id_municipio
+    WHERE (a.cedula LIKE ? OR a.nombres LIKE ? OR a.apellidos LIKE ?)
   `;
-  const term = `%${searchTerm}%`;
-  const [afiliados] = await db.query(query, [term, term, term]);
+  
+  const params = [`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`];
+  
+  // Aplicar filtro de departamento si no es presidencia_nacional
+  if (rol !== 'presidencia_nacional' && departamento) {
+    query += ` AND m.departamento = ?`;
+    params.push(departamento);
+  }
+  
+  const [afiliados] = await db.query(query, params);
   return afiliados;
 };

@@ -1,81 +1,68 @@
-import * as cargosService from "../services/cargosService.js";
+import * as cargosService from '../services/cargosService.js';
 
-export const getCargos = async (req, res) => {
-  try {
-    const cargos = await cargosService.getCargos();
-    res.json({ success: true, data: cargos });
-  } catch (error) {
-    console.error("❌ Error en getCargos:", error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-export const getCargoById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const cargo = await cargosService.getCargoById(id);
-    if (!cargo) {
-      return res.status(404).json({ success: false, error: "Cargo no encontrado" });
+export const cargosController = {
+  getCargos: async (req, res) => {
+    try {
+      const { departamento, rol } = req.user;
+      console.log(`📋 GET /cargos - Rol: ${rol}, Departamento: ${departamento || 'TODOS'}`);
+      const cargos = await cargosService.getCargos(departamento, rol);
+      res.json({ success: true, data: cargos });
+    } catch (error) {
+      console.error('Error en getCargos:', error);
+      res.status(500).json({ success: false, message: error.message });
     }
-    res.json({ success: true, data: cargo });
-  } catch (error) {
-    console.error("❌ Error en getCargoById:", error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
+  },
 
-export const getMunicipiosByCargo = async (req, res) => {
-  try {
-    const { id } = req.params;
-    console.log("🔍 Consultando municipios para cargo:", id);
-    const municipios = await cargosService.getMunicipiosByCargo(id);
-    res.json({ success: true, data: municipios });
-  } catch (error) {
-    console.error("❌ Error en getMunicipiosByCargo:", error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-export const createCargo = async (req, res) => {
-  try {
-    console.log("📝 Datos recibidos para crear cargo:", req.body);
-    const cargo = await cargosService.createCargo(req.body);
-    console.log("✅ Cargo creado exitosamente:", cargo);
-    res.status(201).json({ success: true, data: cargo });
-  } catch (error) {
-    console.error("❌ Error en createCargo:", error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-export const updateCargo = async (req, res) => {
-  try {
-    const { id } = req.params;
-    console.log("📝 Actualizando cargo:", id, req.body);
-    const cargo = await cargosService.updateCargo(id, req.body);
-    if (!cargo) {
-      return res.status(404).json({ success: false, error: "Cargo no encontrado" });
+  getCargoById: async (req, res) => {
+    try {
+      const cargo = await cargosService.getCargoById(req.params.id);
+      if (!cargo) {
+        return res.status(404).json({ success: false, message: 'Cargo no encontrado' });
+      }
+      res.json({ success: true, data: cargo });
+    } catch (error) {
+      console.error('Error en getCargoById:', error);
+      res.status(500).json({ success: false, message: error.message });
     }
-    console.log("✅ Cargo actualizado exitosamente");
-    res.json({ success: true, data: cargo });
-  } catch (error) {
-    console.error("❌ Error en updateCargo:", error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
+  },
 
-export const deleteCargo = async (req, res) => {
-  try {
-    const { id } = req.params;
-    console.log("🗑️ Eliminando cargo:", id);
-    const deleted = await cargosService.deleteCargo(id);
-    if (!deleted) {
-      return res.status(404).json({ success: false, error: "Cargo no encontrado" });
+  createCargo: async (req, res) => {
+    try {
+      const { rol } = req.user;
+      console.log(`➕ POST /cargos - Rol: ${rol}`);
+      const cargo = await cargosService.createCargo(req.body);
+      res.status(201).json({ success: true, data: cargo });
+    } catch (error) {
+      console.error('Error en createCargo:', error);
+      res.status(400).json({ success: false, message: error.message });
     }
-    console.log("✅ Cargo eliminado exitosamente");
-    res.json({ success: true, message: "Cargo eliminado" });
-  } catch (error) {
-    console.error("❌ Error en deleteCargo:", error);
-    res.status(500).json({ success: false, error: error.message });
+  },
+
+  updateCargo: async (req, res) => {
+    try {
+      const { rol } = req.user;
+      console.log(`✏️ PUT /cargos/${req.params.id} - Rol: ${rol}`);
+      const cargo = await cargosService.updateCargo(req.params.id, req.body);
+      res.json({ success: true, data: cargo });
+    } catch (error) {
+      console.error('Error en updateCargo:', error);
+      res.status(400).json({ success: false, message: error.message });
+    }
+  },
+
+  deleteCargo: async (req, res) => {
+    try {
+      const { departamento, rol } = req.user;
+      console.log(`🗑️ DELETE /cargos/${req.params.id} - Rol: ${rol}, Departamento: ${departamento || 'TODOS'}`);
+      const success = await cargosService.deleteCargo(req.params.id, departamento, rol);
+      if (success) {
+        res.json({ success: true, message: 'Cargo eliminado correctamente' });
+      } else {
+        res.status(404).json({ success: false, message: 'Cargo no encontrado' });
+      }
+    } catch (error) {
+      console.error('Error en deleteCargo:', error);
+      res.status(400).json({ success: false, message: error.message });
+    }
   }
 };

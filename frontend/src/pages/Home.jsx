@@ -44,7 +44,7 @@ export default function Home() {
       const resCuotas = await fetchWithAuth('/api/cuotas');
       const dataCuotas = await resCuotas.json();
       
-      const mesActual = new Date().toLocaleLowerCase('es-ES', { month: 'long' });
+      const mesActual = new Date().toLocaleString('es-ES', { month: 'long' }).toLowerCase();
       const cuotasMes = dataCuotas.success 
         ? dataCuotas.data.filter(c => c.mes.toLowerCase() === mesActual).length 
         : 0;
@@ -135,9 +135,6 @@ export default function Home() {
     <div className="home-container">
       {/* Header con gradiente y logo animado */}
       <div className="home-header">
-        <div className="home-logo-floating">
-          <img src="/escudo_sindescol.png" alt="SINDESCOL" className="home-logo" />
-        </div>
         <div className="home-header-content">
           <h1 className="home-title">
             {obtenerSaludo()}, {usuario?.nombre || 'Usuario'}! 👋
