@@ -20,9 +20,20 @@ function Afiliados() {
   const [elementosPorPagina] = useState(20);
   const [busqueda, setBusqueda] = useState("");
   const [filtroDebounced, setFiltroDebounced] = useState("");
+  const [filtroDepartamento, setFiltroDepartamento] = useState("");
+  const [filtroMunicipio, setFiltroMunicipio] = useState("");
+  const [opciones, setOpciones] = useState({
+    departamentos: [],
+    municipios: [],
+  });
+
+  // Obtener datos del usuario
+  const usuarioData = localStorage.getItem('usuario') || sessionStorage.getItem('usuario');
+  const usuario = usuarioData ? JSON.parse(usuarioData) : null;
 
   useEffect(() => {
     cargarAfiliados();
+    cargarOpciones();
   }, []);
 
   // OPTIMIZACIÓN: Debounce para búsqueda
@@ -34,6 +45,25 @@ function Afiliados() {
 
     return () => clearTimeout(timer);
   }, [busqueda]);
+
+  const cargarOpciones = async () => {
+    try {
+      const [resDepartamentos, resMunicipios] = await Promise.all([
+        fetchWithAuth("/api/departamentos"),
+        fetchWithAuth("/api/municipios")
+      ]);
+      
+      const dataDeps = await resDepartamentos.json();
+      const dataMuns = await resMunicipios.json();
+      
+      setOpciones({
+        departamentos: dataDeps.data || [],
+        municipios: dataMuns.data || []
+      });
+    } catch (error) {
+      console.error("Error cargando opciones:", error);
+    }
+  };
 
  const cargarAfiliados = async () => {
   try {
@@ -208,17 +238,36 @@ function Afiliados() {
 
   // OPTIMIZACIÓN: Filtrar y paginar con useMemo
   const afiliadosFiltrados = useMemo(() => {
-    if (!filtroDebounced) return afiliados;
+    let resultado = afiliados;
 
-    const termino = filtroDebounced.toLowerCase();
-    return afiliados.filter(afiliado => 
-      afiliado.cedula?.toLowerCase().includes(termino) ||
-      afiliado.nombres?.toLowerCase().includes(termino) ||
-      afiliado.apellidos?.toLowerCase().includes(termino) ||
-      afiliado.nombre_cargo?.toLowerCase().includes(termino) ||
-      afiliado.nombre_institucion?.toLowerCase().includes(termino)
-    );
-  }, [afiliados, filtroDebounced]);
+    // Filtrar por búsqueda
+    if (filtroDebounced) {
+      const termino = filtroDebounced.toLowerCase();
+      resultado = resultado.filter(afiliado => 
+        afiliado.cedula?.toLowerCase().includes(termino) ||
+        afiliado.nombres?.toLowerCase().includes(termino) ||
+        afiliado.apellidos?.toLowerCase().includes(termino) ||
+        afiliado.nombre_cargo?.toLowerCase().includes(termino) ||
+        afiliado.nombre_institucion?.toLowerCase().includes(termino)
+      );
+    }
+
+    // Filtrar por departamento (solo si presidencia_nacional)
+    if (usuario?.rol === 'presidencia_nacional' && filtroDepartamento) {
+      resultado = resultado.filter(afiliado => 
+        afiliado.departamento === filtroDepartamento
+      );
+    }
+
+    // Filtrar por municipio (solo si presidencia_nacional)
+    if (usuario?.rol === 'presidencia_nacional' && filtroMunicipio) {
+      resultado = resultado.filter(afiliado => 
+        afiliado.municipio_trabajo == filtroMunicipio
+      );
+    }
+
+    return resultado;
+  }, [afiliados, filtroDebounced, filtroDepartamento, filtroMunicipio, usuario]);
 
   const afiliadosPaginados = useMemo(() => {
     const indexUltimo = paginaActual * elementosPorPagina;
@@ -302,6 +351,78 @@ function Afiliados() {
           </button>
         )}
       </div>
+
+      {/* Filtros de departamento y municipio (solo para presidencia_nacional) */}
+      {usuario?.rol === 'presidencia_nacional' && (
+        <div style={{
+          marginBottom: "1.5rem",
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "1rem",
+          background: "white",
+          padding: "1rem",
+          borderRadius: "8px",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+        }}>
+          <div>
+            <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "600" }}>Filtrar por Departamento</label>
+            <select
+              value={filtroDepartamento}
+              onChange={(e) => {
+                setFiltroDepartamento(e.target.value);
+                setFiltroMunicipio("");
+                setPaginaActual(1);
+              }}
+              style={{
+                width: "100%",
+                padding: "0.75rem",
+                border: "2px solid #ddd",
+                borderRadius: "6px",
+                fontSize: "1rem"
+              }}
+            >
+              <option value="">Todos los departamentos</option>
+              {opciones.departamentos.map((d) => (
+                <option key={d.departamento} value={d.departamento}>
+                  {d.departamento}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "600" }}>Filtrar por Municipio</label>
+            <select
+              value={filtroMunicipio}
+              onChange={(e) => {
+                setFiltroMunicipio(e.target.value);
+                setPaginaActual(1);
+              }}
+              disabled={!filtroDepartamento}
+              style={{
+                width: "100%",
+                padding: "0.75rem",
+                border: "2px solid #ddd",
+                borderRadius: "6px",
+                fontSize: "1rem",
+                opacity: !filtroDepartamento ? 0.5 : 1,
+                cursor: !filtroDepartamento ? "not-allowed" : "pointer"
+              }}
+            >
+              <option value="">
+                {!filtroDepartamento ? "Selecciona departamento primero" : "Todos los municipios"}
+              </option>
+              {opciones.municipios
+                .filter((m) => m.departamento === filtroDepartamento)
+                .map((m) => (
+                  <option key={m.id_municipio} value={m.id_municipio}>
+                    {m.nombre_municipio}
+                  </option>
+                ))}
+            </select>
+          </div>
+        </div>
+      )}
 
       {/* OPTIMIZACIÓN: Información de paginación */}
       <div style={{ 

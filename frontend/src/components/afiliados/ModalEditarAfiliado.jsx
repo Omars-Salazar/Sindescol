@@ -25,6 +25,7 @@ export const ModalEditarAfiliado = ({ isOpen, onClose, afiliadoId, onSubmit }) =
     id_cargo: "",
     fecha_afiliacion: "",
     municipio_trabajo: "",
+    departamento_trabajo: "",
     id_institucion: "",
     correo_institucional: "",
     telefono_institucional: "",
@@ -55,7 +56,11 @@ export const ModalEditarAfiliado = ({ isOpen, onClose, afiliadoId, onSubmit }) =
     cesantias: [],
     cargos: [],
     instituciones: [],
+    departamentos: [],
   });
+
+  const usuarioData = localStorage.getItem('usuario') || sessionStorage.getItem('usuario');
+  const usuario = usuarioData ? JSON.parse(usuarioData) : null;
 
   useEffect(() => {
     if (isOpen && afiliadoId) {
@@ -128,6 +133,7 @@ export const ModalEditarAfiliado = ({ isOpen, onClose, afiliadoId, onSubmit }) =
           id_cargo: afiliado.id_cargo || "",
           fecha_afiliacion: formatFecha(afiliado.fecha_afiliacion),
           municipio_trabajo: afiliado.municipio_trabajo || "",
+          departamento_trabajo: afiliado.departamento_trabajo || "",
           id_institucion: afiliado.id_institucion || "",
           correo_institucional: afiliado.correo_institucional || "",
           telefono_institucional: afiliado.telefono_institucional || "",
@@ -222,6 +228,7 @@ export const ModalEditarAfiliado = ({ isOpen, onClose, afiliadoId, onSubmit }) =
         cesantias: "/api/cesantias",
         cargos: "/api/cargos",
         instituciones: "/api/instituciones",
+        departamentos: "/api/departamentos",
       };
 
       const data = {};
@@ -333,6 +340,7 @@ export const ModalEditarAfiliado = ({ isOpen, onClose, afiliadoId, onSubmit }) =
       id_cargo: "",
       fecha_afiliacion: "",
       municipio_trabajo: "",
+      departamento_trabajo: "",
       id_institucion: "",
       correo_institucional: "",
       telefono_institucional: "",
@@ -593,26 +601,53 @@ export const ModalEditarAfiliado = ({ isOpen, onClose, afiliadoId, onSubmit }) =
                       ))}
                     </select>
                   </div>
-                  <div className="form-group">
-                    <label>Fecha de Afiliación</label>
-                    <input
-                      type="date"
-                      name="fecha_afiliacion"
-                      value={formData.fecha_afiliacion}
-                      onChange={handleChange}
-                    />
-                  </div>
+                  {usuario?.rol === 'presidencia_nacional' && (
+                    <div className="form-group">
+                      <label>Departamento de Trabajo</label>
+                      <select
+                        name="departamento_trabajo"
+                        value={formData.departamento_trabajo}
+                        onChange={handleChange}
+                      >
+                        <option value="">Seleccionar...</option>
+                        {opciones.departamentos.map((d) => (
+                          <option key={d.departamento} value={d.departamento}>{d.departamento}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
                 <div className="form-row">
                   <div className="form-group">
                     <label>Municipio de Trabajo</label>
-                    <select name="municipio_trabajo" value={formData.municipio_trabajo} onChange={handleChange}>
-                      <option value="">Seleccionar...</option>
-                      {opciones.municipios.map((m) => (
-                        <option key={m.id_municipio} value={m.id_municipio}>{m.nombre_municipio}</option>
-                      ))}
+                    <select 
+                      name="municipio_trabajo" 
+                      value={formData.municipio_trabajo} 
+                      onChange={handleChange}
+                      disabled={usuario?.rol === 'presidencia_nacional' && !formData.departamento_trabajo}
+                    >
+                      <option value="">
+                        {usuario?.rol === 'presidencia_nacional' && !formData.departamento_trabajo
+                          ? "Selecciona un departamento primero"
+                          : "Seleccionar..."}
+                      </option>
+                      {opciones.municipios
+                        .filter((m) => {
+                          if (usuario?.rol === 'presidencia_nacional') {
+                            // Presidencia nacional: solo municipios del departamento seleccionado
+                            return formData.departamento_trabajo && m.departamento === formData.departamento_trabajo;
+                          } else if (usuario?.departamento) {
+                            // Otros roles (presidencia): solo municipios de su departamento
+                            return m.departamento === usuario.departamento;
+                          }
+                          return true;
+                        })
+                        .map((m) => (
+                          <option key={m.id_municipio} value={m.id_municipio}>{m.nombre_municipio}</option>
+                        ))}
                     </select>
                   </div>
+
                   <div className="form-group">
                     <label>Salario Asociado</label>
                     <input
@@ -625,6 +660,17 @@ export const ModalEditarAfiliado = ({ isOpen, onClose, afiliadoId, onSubmit }) =
                         fontWeight: "bold",
                         cursor: "not-allowed"
                       }}
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Fecha de Afiliación</label>
+                    <input
+                      type="date"
+                      name="fecha_afiliacion"
+                      value={formData.fecha_afiliacion}
+                      onChange={handleChange}
                     />
                   </div>
                 </div>

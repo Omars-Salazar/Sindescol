@@ -6,7 +6,7 @@ import db from "../config/db.js";
 export const getAfiliados = async (departamento, rol) => {
   let query = `
     SELECT a.id_afiliado, a.cedula, a.nombres, a.apellidos,
-           a.id_cargo, a.id_institucion,
+           a.id_cargo, a.id_institucion, a.municipio_trabajo,
            c.nombre_cargo, ie.nombre_institucion,
            m.departamento, m.nombre_municipio
     FROM afiliados a
@@ -87,7 +87,7 @@ export const createAfiliado = async (data, departamento, rol) => {
   try {
     await connection.beginTransaction();
 
-    // VALIDAR QUE EL MUNICIPIO DE TRABAJO PERTENECE AL DEPARTAMENTO DEL USUARIO
+    // VALIDAR QUE EL MUNICIPIO DE TRABAJO PERTENECE AL DEPARTAMENTO CORRESPONDIENTE
     if (data.municipio_trabajo) {
       const [municipios] = await connection.query(
         'SELECT departamento FROM municipios WHERE id_municipio = ?',
@@ -98,14 +98,24 @@ export const createAfiliado = async (data, departamento, rol) => {
         id_municipio: data.municipio_trabajo,
         municipioEnBD: municipios[0],
         departamentoUsuario: departamento,
-        rol: rol
+        rol: rol,
+        departamentoSeleccionado: data.departamento_trabajo || null
       });
-      
-      // SOLO presidencia_nacional puede crear afiliados en cualquier departamento
-      if (rol !== 'presidencia_nacional') {
-        if (municipios.length === 0) {
-          throw new Error('Municipio no encontrado');
+
+      if (municipios.length === 0) {
+        throw new Error('Municipio no encontrado');
+      }
+
+      // Si el creador es presidencia_nacional, debe especificar un departamento
+      if (rol === 'presidencia_nacional') {
+        if (!data.departamento_trabajo) {
+          throw new Error('Departamento de trabajo es requerido cuando se crea desde Presidencia Nacional');
         }
+        if (municipios[0].departamento !== data.departamento_trabajo) {
+          throw new Error(`El municipio seleccionado no pertenece al departamento ${data.departamento_trabajo}`);
+        }
+      } else {
+        // Para usuarios con rol limitado, el municipio debe pertenecer a su departamento
         if (municipios[0].departamento !== departamento) {
           throw new Error(`No tienes permiso para crear afiliados en el departamento ${municipios[0].departamento}. Solo puedes crear afiliados en ${departamento}`);
         }
