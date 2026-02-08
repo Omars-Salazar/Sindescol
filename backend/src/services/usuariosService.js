@@ -315,3 +315,24 @@ export const toggleActivo = async (id) => {
     throw error;
   }
 };
+
+// ============================================
+// OBTENER CORREO DE PRESIDENCIA NACIONAL
+// ============================================
+export const getCorreoPresidenciaNacional = async () => {
+  try {
+    const [usuarios] = await pool.query(
+      'SELECT email FROM usuarios WHERE rol = ? AND activo = TRUE LIMIT 1',
+      ['presidencia_nacional']
+    );
+
+    if (usuarios.length === 0) {
+      throw new Error('No se encontró un usuario de Presidencia Nacional activo');
+    }
+
+    return usuarios[0].email;
+  } catch (error) {
+    console.error('Error en getCorreoPresidenciaNacional service:', error);
+    throw error;
+  }
+};

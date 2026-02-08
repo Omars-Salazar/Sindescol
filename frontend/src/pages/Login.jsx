@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import ModalSolicitudSoporte from '../components/ModalSolicitudSoporte';
 
 import './Login.css';
 
@@ -12,6 +13,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [recordarme, setRecordarme] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -157,14 +159,23 @@ export default function Login() {
         <div className="login-footer">
           <p className="login-footer-text">
             ¿Problemas para acceder?{' '}
-            <a href="#" className="login-footer-link">
+            <button
+              type="button"
+              className="login-footer-link"
+              onClick={() => setShowModal(true)}
+            >
               Contacta al administrador
-            </a>
+            </button>
           </p>
         </div>
       </div>
 
       <div className="login-version">v1.0.0 - SINDESCOL</div>
+
+      <ModalSolicitudSoporte
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+      />
     </div>
   );
 }

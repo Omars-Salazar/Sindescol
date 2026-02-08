@@ -1,0 +1,438 @@
+/* ModalSolicitudSoporte.css - Estilos inspirados en Login.css */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow:
+    0 10px 40px rgba(13, 71, 161, 0.3),
+    0 0 0 1px rgba(255, 193, 7, 0.2);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #1976D2 0%, #FFC107 50%, #1976D2 100%);
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem 1rem;
+  border-bottom: 2px solid #E3F2FD;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  color: #1976D2;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  background: #F5F5F5;
+  color: #D32F2F;
+  transform: scale(1.1);
+}
+
+.modal-body {
+  padding: 2rem;
+}
+
+.modal-alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  animation: slideIn 0.5s ease-out;
+}
+
+.modal-alert.success {
+  background: linear-gradient(135deg, #E8F5E8 0%, #C8E6C9 100%);
+  color: #2E7D32;
+  border-left: 4px solid #4CAF50;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+.modal-alert.error {
+  background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+  color: #C62828;
+  border-left: 4px solid #D32F2F;
+  box-shadow: 0 2px 8px rgba(211, 47, 47, 0.2);
+}
+
+.modal-alert-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.modal-alert-message {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-form-group {
+  margin-bottom: 1.5rem;
+}
+
+.modal-label {
+  display: block;
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+  color: #1976D2;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+}
+
+.modal-input-wrapper {
+  position: relative;
+}
+
+.modal-input-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #90CAF9;
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+  pointer-events: none;
+}
+
+.modal-input, .modal-select, .modal-textarea {
+  width: 100%;
+  padding: 0.9rem 3rem 0.9rem 3rem;
+  border: 2px solid #E3F2FD;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  background: #F5F5F5;
+  color: #333;
+}
+
+.modal-input:focus, .modal-select:focus, .modal-textarea:focus {
+  outline: none;
+  border-color: #1976D2;
+  background: white;
+  box-shadow:
+    0 0 0 4px rgba(25, 118, 210, 0.1),
+    0 2px 8px rgba(25, 118, 210, 0.15);
+}
+
+.modal-input:focus + .modal-input-icon {
+  color: #1976D2;
+}
+
+.modal-input::placeholder, .modal-textarea::placeholder {
+  color: #999;
+}
+
+.modal-select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+.modal-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  justify-content: flex-end;
+}
+
+.modal-btn {
+  padding: 0.9rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 120px;
+}
+
+.modal-btn.primary {
+  background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);
+  color: white;
+  box-shadow:
+    0 4px 12px rgba(25, 118, 210, 0.4),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.modal-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 20px rgba(25, 118, 210, 0.5),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.modal-btn.primary:active {
+  transform: translateY(0);
+  box-shadow:
+    0 2px 8px rgba(25, 118, 210, 0.4),
+    inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.modal-btn.primary:disabled {
+  background: linear-gradient(135deg, #BDBDBD 0%, #9E9E9E 100%);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.modal-btn.secondary {
+  background: #F5F5F5;
+  color: #666;
+  border: 2px solid #E3F2FD;
+}
+
+.modal-btn.secondary:hover {
+  background: #E3F2FD;
+  color: #1976D2;
+  border-color: #1976D2;
+}
+
+.modal-btn.secondary:disabled {
+  background: #F5F5F5;
+  color: #BDBDBD;
+  border-color: #E0E0E0;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-content {
+    margin: 1rem;
+    max-width: 100%;
+    max-height: 95vh;
+  }
+
+  .modal-header {
+    padding: 1rem 1.5rem 0.5rem;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .modal-title {
+    font-size: 1.3rem;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    margin: 0.5rem;
+    border-radius: 8px;
+  }
+
+  .modal-header {
+    padding: 1rem 1rem 0.5rem;
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+
+  .modal-input, .modal-select, .modal-textarea {
+    padding: 0.8rem 1rem 0.8rem 2.8rem;
+    font-size: 0.95rem;
+  }
+
+  .modal-input-icon {
+    left: 0.75rem;
+    font-size: 1rem;
+  }
+}
+
+/* Custom Alert Styles */
+.custom-alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  min-width: 350px;
+  max-width: 500px;
+  animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.custom-alert.success {
+  background: linear-gradient(135deg, #E8F5E8 0%, #C8E6C9 100%);
+  border-left: 4px solid #4CAF50;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+}
+
+.custom-alert.error {
+  background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+  border-left: 4px solid #F44336;
+  box-shadow: 0 4px 20px rgba(244, 67, 54, 0.3);
+}
+
+.custom-alert-content {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.custom-alert-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.custom-alert-message {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.4;
+}
+
+.custom-alert-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.custom-alert-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
+  transform: scale(1.1);
+}
+
+/* Animaciones adicionales */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+.modal-alert.error {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .custom-alert {
+    left: 10px;
+    right: 10px;
+    min-width: auto;
+    max-width: none;
+  }
+
+  .custom-alert-content {
+    padding: 0.75rem 1rem;
+  }
+
+  .custom-alert-message {
+    font-size: 0.9rem;
+  }
+}
