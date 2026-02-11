@@ -82,33 +82,109 @@ export const getMunicipiosByCargo = async (id, departamento, rol) => {
 };
 
 // ============================================
-// CREAR CARGO (disponible para todos)
+// CREAR CARGO CON SALARIOS
 // ============================================
 export const createCargo = async (data) => {
-  const { nombre_cargo } = data;
-  
-  const [result] = await db.query(
-    'INSERT INTO cargos (nombre_cargo) VALUES (?)',
-    [nombre_cargo]
-  );
-  
-  console.log(`✅ Cargo creado:`, { id_cargo: result.insertId, nombre_cargo });
-  return { id_cargo: result.insertId, nombre_cargo };
+  const { nombre_cargo, salario, municipios = [] } = data;
+
+  if (!nombre_cargo || !nombre_cargo.trim()) {
+    throw new Error('El nombre del cargo es requerido');
+  }
+
+  if (!salario || salario <= 0) {
+    throw new Error('El salario debe ser mayor a 0');
+  }
+
+  if (municipios.length === 0) {
+    throw new Error('Debes seleccionar al menos un municipio');
+  }
+
+  const connection = await db.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    // 1. Crear cargo
+    const [cargoResult] = await connection.query(
+      'INSERT INTO cargos (nombre_cargo) VALUES (?)',
+      [nombre_cargo.trim()]
+    );
+
+    const id_cargo = cargoResult.insertId;
+
+    // 2. Crear salarios para cada municipio
+    for (const id_municipio of municipios) {
+      await connection.query(
+        'INSERT INTO salarios_municipios (id_cargo, id_municipio, salario) VALUES (?, ?, ?)',
+        [id_cargo, id_municipio, salario]
+      );
+    }
+
+    await connection.commit();
+
+    console.log(`✅ Cargo creado:`, { id_cargo, nombre_cargo, salarios_count: municipios.length });
+    return { id_cargo, nombre_cargo, municipios };
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 };
 
 // ============================================
-// ACTUALIZAR CARGO (disponible para todos)
+// ACTUALIZAR CARGO CON SALARIOS
 // ============================================
 export const updateCargo = async (id, data) => {
-  const { nombre_cargo } = data;
-  
-  await db.query(
-    'UPDATE cargos SET nombre_cargo = ? WHERE id_cargo = ?',
-    [nombre_cargo, id]
-  );
-  
-  console.log(`✅ Cargo actualizado:`, id);
-  return getCargoById(id);
+  const { nombre_cargo, salario, municipios = [] } = data;
+
+  if (!nombre_cargo || !nombre_cargo.trim()) {
+    throw new Error('El nombre del cargo es requerido');
+  }
+
+  if (!salario || salario <= 0) {
+    throw new Error('El salario debe ser mayor a 0');
+  }
+
+  if (municipios.length === 0) {
+    throw new Error('Debes seleccionar al menos un municipio');
+  }
+
+  const connection = await db.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    // 1. Actualizar cargo
+    await connection.query(
+      'UPDATE cargos SET nombre_cargo = ? WHERE id_cargo = ?',
+      [nombre_cargo.trim(), id]
+    );
+
+    // 2. Eliminar salarios anteriores
+    await connection.query(
+      'DELETE FROM salarios_municipios WHERE id_cargo = ?',
+      [id]
+    );
+
+    // 3. Crear nuevos salarios
+    for (const id_municipio of municipios) {
+      await connection.query(
+        'INSERT INTO salarios_municipios (id_cargo, id_municipio, salario) VALUES (?, ?, ?)',
+        [id, id_municipio, salario]
+      );
+    }
+
+    await connection.commit();
+
+    console.log(`✅ Cargo actualizado:`, id);
+    return getCargoById(id);
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 };
 
 // ============================================

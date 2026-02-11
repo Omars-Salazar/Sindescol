@@ -1,11 +1,12 @@
 import express from "express";
-import db from "../config/db.js";
+import { getMunicipios } from "../services/municipiosService.js";
 
 const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const [municipios] = await db.query("SELECT * FROM municipios");
+    const { departamento, rol } = req.user;
+    const municipios = await getMunicipios(departamento, rol);
     res.json({ success: true, data: municipios });
   } catch (error) {
     console.error("Error:", error);

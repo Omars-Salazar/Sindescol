@@ -19,6 +19,7 @@ import actasRoutes from './actasRoutes.js';
 import otrosCargosRoutes from './otrosCargosRoutes.js';
 import rectoresRoutes from './rectoresRoutes.js';
 import usuariosRoutes from './usuariosRoutes.js';
+import mensajesDiaRoutes from './mensajesDiaRoutes.js';
 
 const router = express.Router();
 
@@ -49,5 +50,6 @@ router.use('/actas', authenticateToken, actasRoutes);
 router.use('/otros-cargos', authenticateToken, otrosCargosRoutes);
 router.use('/rectores', authenticateToken, rectoresRoutes);
 router.use('/usuarios', authenticateToken, usuariosRoutes);
+router.use('/mensajes-dia', authenticateToken, mensajesDiaRoutes);
 
 export default router;

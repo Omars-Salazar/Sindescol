@@ -274,6 +274,29 @@
 }
 
 /* ===============================
+   TARJETA DESHABILITADA (Solo visual)
+================================ */
+.departamento-card.disabled {
+  opacity: 0.6;
+  background: #f5f5f5;
+}
+
+.departamento-card.disabled:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.departamento-card.disabled .departamento-header {
+  background: linear-gradient(90deg, #999999 0%, #666666 100%);
+  cursor: not-allowed;
+}
+
+.departamento-card.disabled .btn-expand:disabled {
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ===============================
    RESPONSIVE
 ================================ */
 @media (max-width: 1024px) {

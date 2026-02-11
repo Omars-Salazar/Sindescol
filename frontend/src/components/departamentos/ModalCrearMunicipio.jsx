@@ -1,11 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../../pages/Departamentos.css";
 
-export const ModalCrearMunicipio = ({ isOpen, onClose, onSubmit, departamentos }) => {
+export const ModalCrearMunicipio = ({ isOpen, onClose, onSubmit, departamentos, usuarioActual }) => {
   const [formData, setFormData] = useState({
     nombre_municipio: "",
     departamento: ""
   });
+
+  const esDepartamental = usuarioActual?.rol === 'presidencia_departamental';
+
+  useEffect(() => {
+    if (esDepartamental && usuarioActual?.departamento) {
+      setFormData(prev => ({
+        ...prev,
+        departamento: usuarioActual.departamento
+      }));
+    }
+  }, [usuarioActual, esDepartamental, isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,7 +41,7 @@ export const ModalCrearMunicipio = ({ isOpen, onClose, onSubmit, departamentos }
   const resetForm = () => {
     setFormData({
       nombre_municipio: "",
-      departamento: ""
+      departamento: esDepartamental ? usuarioActual?.departamento || "" : ""
     });
   };
 
@@ -50,19 +61,31 @@ export const ModalCrearMunicipio = ({ isOpen, onClose, onSubmit, departamentos }
           <div className="modal-departamentos-body">
             <div className="form-group">
               <label>Departamento *</label>
-              <select
-                name="departamento"
-                value={formData.departamento}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Seleccionar departamento...</option>
-                {departamentos.map((depto, index) => (
-                  <option key={index} value={depto.departamento}>
-                    {depto.departamento}
-                  </option>
-                ))}
-              </select>
+              {esDepartamental ? (
+                <div style={{ 
+                  padding: '0.75rem', 
+                  background: '#f0f0f0', 
+                  border: '1px solid #ccc', 
+                  borderRadius: '4px',
+                  fontWeight: 'bold'
+                }}>
+                  {usuarioActual?.departamento}
+                </div>
+              ) : (
+                <select
+                  name="departamento"
+                  value={formData.departamento}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Seleccionar departamento...</option>
+                  {departamentos.map((depto, index) => (
+                    <option key={index} value={depto.departamento}>
+                      {depto.departamento}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div className="form-group">

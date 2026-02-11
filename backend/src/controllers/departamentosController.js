@@ -23,6 +23,17 @@ export const getMunicipiosByDepartamento = async (req, res) => {
 
 export const createMunicipio = async (req, res) => {
   try {
+    const { rol, departamento: userDepartamento } = req.user;
+    const { departamento } = req.body;
+
+    // Si es presidencia_departamental, solo puede crear municipios en su departamento
+    if (rol === 'presidencia_departamental' && departamento !== userDepartamento) {
+      return res.status(403).json({ 
+        success: false, 
+        error: "Solo puedes crear municipios en tu departamento" 
+      });
+    }
+
     console.log("📝 Creando municipio:", req.body);
     const municipio = await departamentosService.createMunicipio(req.body);
     console.log("✅ Municipio creado exitosamente");
@@ -36,6 +47,19 @@ export const createMunicipio = async (req, res) => {
 export const updateMunicipio = async (req, res) => {
   try {
     const { id } = req.params;
+    const { rol, departamento: userDepartamento } = req.user;
+
+    // Si es presidencia_departamental, verificar que el municipio sea de su departamento
+    if (rol === 'presidencia_departamental') {
+      const municipio = await departamentosService.getMunicipioById(id);
+      if (municipio?.departamento !== userDepartamento) {
+        return res.status(403).json({ 
+          success: false, 
+          error: "No tienes permiso para actualizar municipios de otros departamentos" 
+        });
+      }
+    }
+
     console.log("📝 Actualizando municipio:", id, req.body);
     const municipio = await departamentosService.updateMunicipio(id, req.body);
     if (!municipio) {
@@ -52,6 +76,19 @@ export const updateMunicipio = async (req, res) => {
 export const deleteMunicipio = async (req, res) => {
   try {
     const { id } = req.params;
+    const { rol, departamento: userDepartamento } = req.user;
+
+    // Si es presidencia_departamental, verificar que el municipio sea de su departamento
+    if (rol === 'presidencia_departamental') {
+      const municipio = await departamentosService.getMunicipioById(id);
+      if (municipio?.departamento !== userDepartamento) {
+        return res.status(403).json({ 
+          success: false, 
+          error: "No tienes permiso para eliminar municipios de otros departamentos" 
+        });
+      }
+    }
+
     console.log("🗑️ Eliminando municipio:", id);
     const deleted = await departamentosService.deleteMunicipio(id);
     if (!deleted) {
@@ -67,6 +104,16 @@ export const deleteMunicipio = async (req, res) => {
 
 export const createDepartamentoConMunicipios = async (req, res) => {
   try {
+    const { rol } = req.user;
+
+    // Solo presidencia_nacional puede crear departamentos
+    if (rol !== 'presidencia_nacional') {
+      return res.status(403).json({ 
+        success: false, 
+        error: "Solo presidencia_nacional puede crear departamentos" 
+      });
+    }
+
     console.log("📝 Creando departamento con municipios:", req.body);
     const resultado = await departamentosService.createDepartamentoConMunicipios(req.body);
     console.log("✅ Departamento creado exitosamente");

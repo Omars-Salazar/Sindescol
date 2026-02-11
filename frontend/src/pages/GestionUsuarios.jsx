@@ -10,6 +10,8 @@ export default function GestionUsuarios() {
   const [editingId, setEditingId] = useState(null);
   const [alert, setAlert] = useState(null);
   const [usuarioActual, setUsuarioActual] = useState(null);
+  const [departamentos, setDepartamentos] = useState([]);
+  const [filtros, setFiltros] = useState({ departamento: 'todos', rol: 'todos' });
   
   const [formData, setFormData] = useState({
     email: "",
@@ -26,22 +28,11 @@ export default function GestionUsuarios() {
       setUsuarioActual(JSON.parse(userData));
     }
     cargarUsuarios();
+    cargarDepartamentos();
   }, []);
 
   // Limpiar formulario cuando se cierra
-  useEffect(() => {
-    if (!showForm) {
-      setFormData({
-        email: "",
-        password: "",
-        nombre: "",
-        celular: "",
-        departamento: "",
-        rol: "usuario"
-      });
-      setEditingId(null);
-    }
-  }, [showForm]);
+  const puedeEditarRol = usuarioActual?.rol === 'presidencia_nacional';
 
   const cargarUsuarios = async () => {
     setLoading(true);
@@ -67,6 +58,21 @@ export default function GestionUsuarios() {
       showAlert("Error al cargar usuarios", "danger");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const cargarDepartamentos = async () => {
+    try {
+      const response = await fetchWithAuth("/api/departamentos");
+      const data = await response.json();
+      if (data.success) {
+        const lista = (data.data || [])
+          .map((item) => (typeof item === "string" ? item : item.departamento))
+          .filter(Boolean);
+        setDepartamentos(lista);
+      }
+    } catch (error) {
+      console.error("❌ Error cargando departamentos:", error);
     }
   };
 
@@ -189,6 +195,11 @@ export default function GestionUsuarios() {
     setShowForm(false);
   };
 
+  const handleFiltroChange = (e) => {
+    const { name, value } = e.target;
+    setFiltros((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleCancelar = () => {
     resetForm();
   };
@@ -217,7 +228,40 @@ export default function GestionUsuarios() {
     return celularStr || "No registrado";
   };
 
-  const puedeEditarRol = usuarioActual?.rol === 'presidencia_nacional';
+  useEffect(() => {
+    if (!showForm) {
+      setFormData({
+        email: "",
+        password: "",
+        nombre: "",
+        celular: "",
+        departamento: puedeEditarRol ? "" : (usuarioActual?.departamento || ""),
+        rol: "usuario"
+      });
+      setEditingId(null);
+    }
+  }, [showForm, puedeEditarRol, usuarioActual]);
+
+  useEffect(() => {
+    if (usuarioActual && !puedeEditarRol && !editingId) {
+      setFormData((prev) => ({
+        ...prev,
+        departamento: usuarioActual.departamento || ""
+      }));
+    }
+  }, [usuarioActual, puedeEditarRol, editingId]);
+  const departamentosDisponibles = [...new Set([
+    ...departamentos,
+    ...(formData.departamento ? [formData.departamento] : [])
+  ])];
+  const rolesDisponibles = [...new Set(usuarios.map((usuario) => usuario.rol))];
+
+  const usuariosFiltrados = usuarios.filter((usuario) => {
+    const coincideDepartamento =
+      filtros.departamento === 'todos' || usuario.departamento === filtros.departamento;
+    const coincideRol = filtros.rol === 'todos' || usuario.rol === filtros.rol;
+    return coincideDepartamento && coincideRol;
+  });
 
   return (
     <div className="container">
@@ -303,15 +347,22 @@ export default function GestionUsuarios() {
             <div className="form-row">
               <div className="form-group">
                 <label>Departamento *</label>
-                <input
-                  type="text"
+                <select
                   name="departamento"
                   value={formData.departamento}
                   onChange={handleInputChange}
-                  placeholder="Nariño"
                   required
                   disabled={!puedeEditarRol}
-                />
+                >
+                  {puedeEditarRol && (
+                    <option value="">Selecciona un departamento</option>
+                  )}
+                  {departamentosDisponibles.map((dep) => (
+                    <option key={dep} value={dep}>
+                      {dep}
+                    </option>
+                  ))}
+                </select>
                 {!puedeEditarRol && (
                   <small className="form-hint">Usuarios de tu departamento únicamente</small>
                 )}
@@ -357,6 +408,40 @@ export default function GestionUsuarios() {
         </div>
       ) : (
         <div className="usuarios-tabla-container">
+          <div className="usuarios-filtros">
+            {puedeEditarRol && (
+              <div className="form-group">
+                <label>Filtrar por departamento</label>
+                <select
+                  name="departamento"
+                  value={filtros.departamento}
+                  onChange={handleFiltroChange}
+                >
+                  <option value="todos">Todos</option>
+                  {departamentosDisponibles.map((dep) => (
+                    <option key={dep} value={dep}>
+                      {dep}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="form-group">
+              <label>Filtrar por rol</label>
+              <select name="rol" value={filtros.rol} onChange={handleFiltroChange}>
+                <option value="todos">Todos</option>
+                {rolesDisponibles.map((rol) => (
+                  <option key={rol} value={rol}>
+                    {rol === 'presidencia_nacional'
+                      ? 'Presidencia Nacional'
+                      : rol === 'presidencia'
+                      ? 'Presidencia'
+                      : 'Usuario'}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
           <table className="table usuarios-table">
             <thead>
               <tr>
@@ -370,7 +455,7 @@ export default function GestionUsuarios() {
               </tr>
             </thead>
             <tbody>
-              {usuarios.map((usuario) => (
+              {usuariosFiltrados.map((usuario) => (
                 <tr key={usuario.id_usuario}>
                   <td className="email-cell">{usuario.email}</td>
                   <td>{usuario.nombre}</td>

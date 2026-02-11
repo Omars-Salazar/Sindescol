@@ -14,6 +14,13 @@ export const getMunicipiosByDepartamento = async (departamento) => {
   return rows;
 };
 
+// Obtener un municipio por ID
+export const getMunicipioById = async (id) => {
+  const query = "SELECT * FROM municipios WHERE id_municipio = ?";
+  const [rows] = await pool.query(query, [id]);
+  return rows[0] || null;
+};
+
 // Crear un municipio
 export const createMunicipio = async (data) => {
   const { nombre_municipio, departamento } = data;

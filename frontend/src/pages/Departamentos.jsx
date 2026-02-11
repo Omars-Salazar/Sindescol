@@ -6,6 +6,7 @@ import { fetchWithAuth } from "../utils/fetchWithAuth";
 import "./Departamentos.css";
 
 export default function Departamentos() {
+  const [usuarioActual, setUsuarioActual] = useState(null);
   const [departamentos, setDepartamentos] = useState([]);
   const [municipiosPorDepartamento, setMunicipiosPorDepartamento] = useState({});
   const [loading, setLoading] = useState(false);
@@ -21,6 +22,10 @@ export default function Departamentos() {
   const [departamentoExpandido, setDepartamentoExpandido] = useState(null);
 
   useEffect(() => {
+    const userData = localStorage.getItem('usuario') || sessionStorage.getItem('usuario');
+    if (userData) {
+      setUsuarioActual(JSON.parse(userData));
+    }
     cargarDepartamentos();
   }, []);
 
@@ -32,7 +37,7 @@ export default function Departamentos() {
       
       if (data.success) {
         // Eliminar departamentos duplicados
-        const departamentosUnicos = [];
+        let departamentosUnicos = [];
         const nombresVistos = new Set();
         
         for (const depto of (data.data || [])) {
@@ -41,8 +46,15 @@ export default function Departamentos() {
             departamentosUnicos.push(depto);
           }
         }
+
+        // Si es presidencia_departamental, filtrar para solo mostrar su departamento
+        if (usuarioActual?.rol === 'presidencia_departamental' && usuarioActual?.departamento) {
+          departamentosUnicos = departamentosUnicos.filter(
+            d => d.departamento === usuarioActual.departamento
+          );
+        }
         
-        console.log("📋 Departamentos únicos cargados:", departamentosUnicos);
+        console.log("📋 Departamentos cargados:", departamentosUnicos);
         setDepartamentos(departamentosUnicos);
       }
     } catch (error) {
@@ -213,12 +225,14 @@ export default function Departamentos() {
       {alert && <div className={`alert alert-${alert.type}`}>{alert.message}</div>}
 
       <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem" }}>
-        <button 
-          className="btn btn-primary" 
-          onClick={() => setModalDepartamentoOpen(true)}
-        >
-          ➕ Nuevo Departamento
-        </button>
+        {usuarioActual?.rol === 'presidencia_nacional' && (
+          <button 
+            className="btn btn-primary" 
+            onClick={() => setModalDepartamentoOpen(true)}
+          >
+            ➕ Nuevo Departamento
+          </button>
+        )}
         <button 
           className="btn btn-success" 
           onClick={() => setModalMunicipioOpen(true)}
@@ -241,28 +255,35 @@ export default function Departamentos() {
           {departamentos.map((depto) => {
             const nombreDepto = depto.departamento;
             const estaExpandido = departamentoExpandido === nombreDepto;
+            const esDelUsuario = usuarioActual?.departamento === nombreDepto;
+            const puedeInteractuar = usuarioActual?.rol === 'presidencia_nacional' || esDelUsuario;
             
             console.log(`🏷️ Renderizando: "${nombreDepto}", expandido: ${estaExpandido}, estado actual: "${departamentoExpandido}"`);
             
             return (
               <div 
                 key={nombreDepto} 
-                className={`departamento-card ${estaExpandido ? 'expandido' : ''}`}
+                className={`departamento-card ${estaExpandido ? 'expandido' : ''} ${!puedeInteractuar ? 'disabled' : ''}`}
               >
-                <div className="departamento-header" onClick={() => toggleDepartamento(nombreDepto)}>
+                <div 
+                  className="departamento-header" 
+                  onClick={() => puedeInteractuar && toggleDepartamento(nombreDepto)}
+                  style={{ cursor: puedeInteractuar ? 'pointer' : 'not-allowed', opacity: puedeInteractuar ? 1 : 0.6 }}
+                >
                   <h3>📍 {nombreDepto}</h3>
                   <button
                     className="btn-expand"
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleDepartamento(nombreDepto);
+                      puedeInteractuar && toggleDepartamento(nombreDepto);
                     }}
+                    disabled={!puedeInteractuar}
                   >
                     {estaExpandido ? "▼" : "▶"}
                   </button>
                 </div>
 
-                {estaExpandido ? (
+                {estaExpandido && puedeInteractuar ? (
                   <div className="municipios-lista">
                     {municipiosPorDepartamento[nombreDepto] ? (
                       municipiosPorDepartamento[nombreDepto].length > 0 ? (
@@ -319,6 +340,7 @@ export default function Departamentos() {
         onClose={() => setModalMunicipioOpen(false)}
         onSubmit={handleCrearMunicipio}
         departamentos={departamentos}
+        usuarioActual={usuarioActual}
       />
 
       <ModalEditarMunicipio

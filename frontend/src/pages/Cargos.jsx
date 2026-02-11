@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import * as api from "../services/api";
+import "./Cargos.css";
 
 export default function Cargos() {
   const [cargos, setCargos] = useState([]);
@@ -225,6 +226,7 @@ export default function Cargos() {
       <div className="form-group">
         <label>Municipios *</label>
         <div
+          className="municipios-selector"
           style={{
             border: "2px solid var(--border-color)",
             borderRadius: "6px",
@@ -235,7 +237,7 @@ export default function Cargos() {
           }}
         >
           <div style={{ marginBottom: "1rem", borderBottom: "2px solid #e0e0e0" }}>
-            <label style={{ fontWeight: "bold", cursor: "pointer" }}>
+            <label className="municipio-item municipio-select-all">
               <input
                 type="checkbox"
                 checked={
@@ -243,19 +245,21 @@ export default function Cargos() {
                   municipios.length > 0
                 }
                 onChange={handleSelectAll}
-              />{" "}
-              Seleccionar todos
+              />
+              <span className="municipio-text">Seleccionar todos</span>
             </label>
           </div>
 
           {municipios.map((m) => (
-            <label key={m.id_municipio} style={{ display: "block", cursor: "pointer" }}>
+            <label key={m.id_municipio} className="municipio-item">
               <input
                 type="checkbox"
                 checked={formData.municipios.includes(m.id_municipio)}
                 onChange={() => handleMunicipioToggle(m.id_municipio)}
-              />{" "}
-              {m.nombre_municipio} - {m.departamento}
+              />
+              <span className="municipio-text">
+                {m.nombre_municipio} - {m.departamento}
+              </span>
             </label>
           ))}
         </div>

@@ -47,6 +47,19 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.usuarios-filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  background: #F7FAFF;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.usuarios-filtros .form-group {
+  margin: 0;
+}
+
 .usuarios-table {
   width: 100%;
   min-width: 1200px;

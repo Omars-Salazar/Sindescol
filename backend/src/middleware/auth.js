@@ -1,10 +1,11 @@
 import jwt from 'jsonwebtoken';
+import db from '../config/db.js';
 
 /**
  * Middleware para autenticar el token JWT
  * Extrae: id_usuario, correo, rol, departamento
  */
-export const authenticateToken = (req, res, next) => {
+export const authenticateToken = async (req, res, next) => {
   // Obtener el token del header Authorization
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
@@ -20,12 +21,31 @@ export const authenticateToken = (req, res, next) => {
     // Verificar y decodificar el token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    const [usuarios] = await db.query(
+      'SELECT id_usuario, email, rol, departamento, activo FROM usuarios WHERE id_usuario = ? LIMIT 1',
+      [decoded.id_usuario]
+    );
+
+    if (usuarios.length === 0) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no encontrado. Acceso denegado.'
+      });
+    }
+
+    if (!usuarios[0].activo) {
+      return res.status(403).json({
+        success: false,
+        message: 'Usuario inactivo. Sesion denegada.'
+      });
+    }
+
     // ⭐ IMPORTANTE: Agregar toda la información del usuario a req.user
     req.user = {
-      id_usuario: decoded.id_usuario,
-      email: decoded.email,
-      rol: decoded.rol,                     
-      departamento: decoded.departamento    
+      id_usuario: usuarios[0].id_usuario,
+      email: usuarios[0].email,
+      rol: usuarios[0].rol,
+      departamento: usuarios[0].departamento
     };
 
     console.log('🔐 Usuario autenticado:', {

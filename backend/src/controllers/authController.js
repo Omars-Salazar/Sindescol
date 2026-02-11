@@ -24,7 +24,7 @@ export const login = async (req, res) => {
     let usuarios;
     try {
       [usuarios] = await db.query(
-        'SELECT id_usuario, email, nombre, password_hash, rol, departamento FROM usuarios WHERE email = ?',
+        'SELECT id_usuario, email, nombre, password_hash, rol, departamento, activo FROM usuarios WHERE email = ?',
         [email]
       );
     } catch (dbError) {
@@ -45,6 +45,14 @@ export const login = async (req, res) => {
     }
 
     const usuario = usuarios[0];
+
+    if (!usuario.activo) {
+      console.log('❌ Usuario inactivo:', email);
+      return res.status(403).json({
+        success: false,
+        message: 'Usuario inactivo. Contacta a presidencia.'
+      });
+    }
 
     // Verificar contraseña
     const passwordValido = await bcrypt.compare(password, usuario.password_hash);

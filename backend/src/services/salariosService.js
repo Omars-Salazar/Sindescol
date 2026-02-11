@@ -72,7 +72,8 @@ export const getSalarioById = async (id) => {
 // CREAR SALARIO CON VALIDACIÓN DE DEPARTAMENTO
 // ============================================
 export const createSalario = async (data, departamento, rol) => {
-  const { id_municipio, id_cargo, valor_salario } = data;
+  const { id_municipio, id_cargo, valor_salario, salario } = data;
+  const salarioFinal = valor_salario ?? salario;
 
   // VALIDAR QUE EL MUNICIPIO PERTENECE AL DEPARTAMENTO DEL USUARIO
   const [municipio] = await db.query(
@@ -101,22 +102,26 @@ export const createSalario = async (data, departamento, rol) => {
     throw new Error(`Ya existe un salario registrado para este cargo en ${municipio[0].nombre_municipio}`);
   }
 
+  if (!salarioFinal) {
+    throw new Error('El salario es requerido');
+  }
+
   const [result] = await db.query(
     'INSERT INTO salarios_municipios (id_municipio, id_cargo, salario) VALUES (?, ?, ?)',
-    [id_municipio, id_cargo, valor_salario]
+    [id_municipio, id_cargo, salarioFinal]
   );
 
   console.log(`✅ [${rol}] Salario creado en ${municipio[0].departamento}:`, { 
     id_salario: result.insertId, 
     municipio: municipio[0].nombre_municipio,
-    valor_salario 
+    valor_salario: salarioFinal
   });
   
   return { 
     id_salario: result.insertId, 
     id_municipio, 
     id_cargo, 
-    valor_salario 
+    valor_salario: salarioFinal 
   };
 };
 
@@ -144,7 +149,8 @@ export const updateSalario = async (id, data, departamento, rol) => {
     }
   }
 
-  const { id_municipio, id_cargo, valor_salario } = data;
+  const { id_municipio, id_cargo, valor_salario, salario } = data;
+  const salarioFinal = valor_salario ?? salario;
 
   // Si se está cambiando el municipio, validar que pertenece al departamento
   if (id_municipio) {
@@ -160,9 +166,13 @@ export const updateSalario = async (id, data, departamento, rol) => {
     }
   }
 
+  if (!salarioFinal) {
+    throw new Error('El salario es requerido');
+  }
+
   await db.query(
     'UPDATE salarios_municipios SET id_municipio = ?, id_cargo = ?, salario = ? WHERE id_salario = ?',
-    [id_municipio, id_cargo, valor_salario, id]
+    [id_municipio, id_cargo, salarioFinal, id]
   );
 
   console.log(`✅ [${rol}] Salario actualizado:`, id);

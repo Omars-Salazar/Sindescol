@@ -12,10 +12,25 @@ export default function Home() {
     cuotasMesActual: 0
   });
   const [loading, setLoading] = useState(true);
+  const [mensajeDelDia, setMensajeDelDia] = useState('');
+
+  const mensajesDelDiaFallback = [
+    'Mantener datos de afiliados al dia mejora el servicio.',
+    'Revisar cargos activos ayuda a mantener reportes claros.',
+    'Verificar cuotas del mes evita retrasos innecesarios.',
+    'Actualizar municipios garantiza filtros correctos.',
+    'Revisar accesos de usuarios fortalece la seguridad.',
+    'Registrar salarios con precision evita ajustes posteriores.',
+    'Confirmar datos de contacto reduce errores de comunicacion.',
+    'Usar filtros en listados ahorra tiempo en la gestion diaria.',
+    'Consultar historial antes de cambios previene inconsistencias.',
+    'Hacer respaldos periodicos protege la informacion critica.'
+  ];
 
   useEffect(() => {
     cargarDatosUsuario();
     cargarEstadisticas();
+    cargarMensajeDelDia();
   }, []);
 
   const cargarDatosUsuario = () => {
@@ -67,6 +82,31 @@ export default function Home() {
     if (hora < 12) return '¡Buenos días';
     if (hora < 18) return '¡Buenas tardes';
     return '¡Buenas noches';
+  };
+
+  const obtenerMensajeFallback = () => {
+    const hoy = new Date();
+    const inicioAnio = new Date(hoy.getFullYear(), 0, 0);
+    const diff = hoy - inicioAnio;
+    const unDia = 1000 * 60 * 60 * 24;
+    const diaDelAnio = Math.floor(diff / unDia);
+    const indice = diaDelAnio % mensajesDelDiaFallback.length;
+    return mensajesDelDiaFallback[indice];
+  };
+
+  const cargarMensajeDelDia = async () => {
+    try {
+      const response = await fetchWithAuth('/api/mensajes-dia/actual');
+      const data = await response.json();
+      if (data?.success && data?.data?.mensaje) {
+        setMensajeDelDia(data.data.mensaje);
+        return;
+      }
+      setMensajeDelDia(obtenerMensajeFallback());
+    } catch (error) {
+      console.error('Error cargando mensaje del dia:', error);
+      setMensajeDelDia(obtenerMensajeFallback());
+    }
   };
 
   const tienePermisoGestionUsuarios = usuario?.rol === 'presidencia_nacional' || usuario?.rol === 'presidencia';
@@ -250,7 +290,7 @@ export default function Home() {
           <div className="info-card-icon">💡</div>
           <div className="info-card-content">
             <h4>Consejo del día</h4>
-            <p>Mantén actualizada la información de los afiliados para un mejor servicio.</p>
+            <p>{mensajeDelDia || obtenerMensajeFallback()}</p>
           </div>
         </div>
 
