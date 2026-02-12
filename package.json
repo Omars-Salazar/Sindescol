@@ -1,4 +1,25 @@
 {
+  "name": "sindescol",
+  "version": "1.0.0",
+  "description": "Sistema integral de gestión para sindicatos colombianos",
+  "author": {
+    "name": "Omar Santiago Salazar",
+    "email": "ossy2607@gmail.com",
+    "url": "https://github.com/tu-usuario"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tu-usuario/sindescol.git"
+  },
+  "keywords": [
+    "sindicato",
+    "gestión",
+    "colombia",
+    "react",
+    "express",
+    "mysql"
+  ],
   "dependencies": {
     "nodemailer": "^8.0.1",
     "react-icons": "^5.5.0"

@@ -1,0 +1,116 @@
+# SINDESCOL - Sistema de Gestión Sindical
+# .gitignore - Archivos y carpetas a ignorar en Git
+# Autor: Omar Santiago Salazar
+
+# ===========================
+# VARIABLES DE ENTORNO
+# ===========================
+.env
+.env.local
+.env.production
+.env.development
+*.env
+
+# ===========================
+# NODE MODULES
+# ===========================
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===========================
+# BUILD OUTPUTS
+# ===========================
+dist/
+build/
+*/dist/
+*/build/
+.vite/
+
+# ===========================
+# LOGS
+# ===========================
+logs/
+*.log
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# ===========================
+# EDITOR DIRECTORIES
+# ===========================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# ===========================
+# TEMPORARY FILES
+# ===========================
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.cache/
+
+# ===========================
+# DATABASE
+# ===========================
+*.sql
+*.sqlite
+*.db
+backups/
+
+# ===========================
+# UPLOADS (si existieran)
+# ===========================
+uploads/
+public/uploads/
+
+# ===========================
+# TESTS
+# ===========================
+coverage/
+.nyc_output/
+*.lcov
+
+# ===========================
+# OS SPECIFIC
+# ===========================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ===========================
+# PACKAGE MANAGERS
+# ===========================
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ===========================
+# OPTIONAL KEEPS
+# ===========================
+# Descomentar si no quieres subir estos archivos
+# TODO.md
+# VALORACION_PROYECTO.md

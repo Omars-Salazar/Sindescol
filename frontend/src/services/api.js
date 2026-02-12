@@ -1,3 +1,16 @@
+/**
+ * SINDESCOL - Sistema de Gestión Sindical
+ * 
+ * Archivo: services/api.js
+ * Descripción: Cliente Axios configurado con interceptors para JWT
+ * 
+ * @author Omar Santiago Salazar
+ * @email ossy2607@gmail.com
+ * @date 2025-2026
+ * @version 1.0.0
+ * @license MIT
+ */
+
 import axios from "axios";
 
 const API_URL = "http://localhost:4000/api";

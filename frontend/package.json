@@ -1,8 +1,19 @@
 {
   "name": "sindescol-frontend",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Frontend React para sistema de gestión sindical SINDESCOL - Colombia",
   "private": true,
   "type": "module",
+  "author": {
+    "name": "Omar Santiago Salazar",
+    "email": "ossy2607@gmail.com",
+    "url": "https://github.com/tu-usuario"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tu-usuario/sindescol.git"
+  },
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

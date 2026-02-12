@@ -1,3 +1,16 @@
+/**
+ * SINDESCOL - Sistema de Gestión Sindical
+ * 
+ * Archivo: app.js
+ * Descripción: Configuración principal de Express
+ * 
+ * @author Omar Santiago Salazar
+ * @email ossy2607@gmail.com
+ * @date 2025-2026
+ * @version 1.0.0
+ * @license MIT
+ */
+
 import express from "express";
 import cors from "cors";
 import routes from "./routes/index.js";

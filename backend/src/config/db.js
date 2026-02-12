@@ -1,3 +1,16 @@
+/**
+ * SINDESCOL - Sistema de Gestión Sindical
+ * 
+ * Archivo: config/db.js
+ * Descripción: Configuración de pool de conexiones MySQL
+ * 
+ * @author Omar Santiago Salazar
+ * @email ossy2607@gmail.com
+ * @date 2025-2026
+ * @version 1.0.0
+ * @license MIT
+ */
+
 import mysql from "mysql2/promise";
 import dotenv from "dotenv";
 

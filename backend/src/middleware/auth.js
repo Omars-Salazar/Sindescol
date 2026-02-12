@@ -1,3 +1,16 @@
+/**
+ * SINDESCOL - Sistema de Gestión Sindical
+ * 
+ * Archivo: middleware/auth.js
+ * Descripción: Middleware de autenticación JWT
+ * 
+ * @author Omar Santiago Salazar
+ * @email ossy2607@gmail.com
+ * @date 2025-2026
+ * @version 1.0.0
+ * @license MIT
+ */
+
 import jwt from 'jsonwebtoken';
 import db from '../config/db.js';
 

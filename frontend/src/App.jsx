@@ -1,4 +1,16 @@
-// frontend/src/App.jsx
+/**
+ * SINDESCOL - Sistema de Gestión Sindical
+ * 
+ * Archivo: App.jsx
+ * Descripción: Componente principal y configuración de rutas
+ * 
+ * @author Omar Santiago Salazar
+ * @email ossy2607@gmail.com
+ * @date 2025-2026
+ * @version 1.0.0
+ * @license MIT
+ */
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Navbar from "./components/Navbar";
