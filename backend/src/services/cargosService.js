@@ -1,4 +1,5 @@
 import db from "../config/db.js";
+import { getErrorMessage } from "../utils/errorMessages.js";
 
 // ============================================
 // OBTENER CARGOS CON FILTRADO POR DEPARTAMENTO
@@ -88,15 +89,15 @@ export const createCargo = async (data) => {
   const { nombre_cargo, salario, municipios = [] } = data;
 
   if (!nombre_cargo || !nombre_cargo.trim()) {
-    throw new Error('El nombre del cargo es requerido');
+    throw new Error(getErrorMessage('CARGOS.MISSING_NAME'));
   }
 
   if (!salario || salario <= 0) {
-    throw new Error('El salario debe ser mayor a 0');
+    throw new Error(getErrorMessage('CARGOS.INVALID_SALARY'));
   }
 
   if (municipios.length === 0) {
-    throw new Error('Debes seleccionar al menos un municipio');
+    throw new Error(getErrorMessage('CARGOS.NO_MUNICIPALITIES'));
   }
 
   const connection = await db.getConnection();
@@ -139,15 +140,15 @@ export const updateCargo = async (id, data) => {
   const { nombre_cargo, salario, municipios = [] } = data;
 
   if (!nombre_cargo || !nombre_cargo.trim()) {
-    throw new Error('El nombre del cargo es requerido');
+    throw new Error(getErrorMessage('CARGOS.MISSING_NAME'));
   }
 
   if (!salario || salario <= 0) {
-    throw new Error('El salario debe ser mayor a 0');
+    throw new Error(getErrorMessage('CARGOS.INVALID_SALARY'));
   }
 
   if (municipios.length === 0) {
-    throw new Error('Debes seleccionar al menos un municipio');
+    throw new Error(getErrorMessage('CARGOS.NO_MUNICIPALITIES'));
   }
 
   const connection = await db.getConnection();
@@ -208,43 +209,54 @@ export const getCargosByMunicipio = async (id_municipio) => {
 // ELIMINAR CARGO CON VALIDACIÓN
 // ============================================
 export const deleteCargo = async (id, departamento, rol) => {
-  // Verificar si hay salarios asociados a este cargo
-  const [salarios] = await db.query(
-    'SELECT COUNT(*) as count FROM salarios_municipios WHERE id_cargo = ?',
-    [id]
-  );
-
-  if (salarios[0].count > 0) {
-    throw new Error('No se puede eliminar el cargo porque tiene salarios asociados. Elimina esos salarios y vuelve a intentar.');
+  const connection = await db.getConnection();
+  
+  try {
+    await connection.beginTransaction();
+    
+    // Verificar si hay afiliados usando este cargo
+    let checkQuery = `
+      SELECT COUNT(*) as count 
+      FROM afiliados a
+      WHERE a.id_cargo = ?
+    `;
+    
+    const params = [id];
+    
+    // Si no es presidencia_nacional, solo verificar en su departamento
+    if (rol !== 'presidencia_nacional' && departamento) {
+      checkQuery += `
+      AND EXISTS (
+        SELECT 1 FROM municipios m 
+        WHERE m.id_municipio = a.municipio_trabajo 
+        AND m.departamento = ?
+      )`;
+      params.push(departamento);
+    }
+    
+    const [afiliados] = await connection.query(checkQuery, params);
+    
+    if (afiliados[0].count > 0) {
+      throw new Error(getErrorMessage('CARGOS.IN_USE_AFFILIATES', { count: afiliados[0].count }));
+    }
+    
+    // Eliminar salarios asociados primero (para evitar constraint errors)
+    await connection.query(
+      'DELETE FROM salarios_municipios WHERE id_cargo = ?',
+      [id]
+    );
+    
+    // Ahora eliminar el cargo
+    const [result] = await connection.query('DELETE FROM cargos WHERE id_cargo = ?', [id]);
+    
+    await connection.commit();
+    
+    console.log(`✅ [${rol}] Cargo eliminado:`, id);
+    return result.affectedRows > 0;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
   }
-
-  // Verificar si hay afiliados usando este cargo
-  let checkQuery = `
-    SELECT COUNT(*) as count 
-    FROM afiliados a
-    WHERE a.id_cargo = ?
-  `;
-  
-  const params = [id];
-  
-  // Si no es presidencia_nacional, solo verificar en su departamento
-  if (rol !== 'presidencia_nacional' && departamento) {
-    checkQuery += `
-    AND EXISTS (
-      SELECT 1 FROM municipios m 
-      WHERE m.id_municipio = a.municipio_trabajo 
-      AND m.departamento = ?
-    )`;
-    params.push(departamento);
-  }
-  
-  const [afiliados] = await db.query(checkQuery, params);
-  
-  if (afiliados[0].count > 0) {
-    throw new Error(`No se puede eliminar el cargo porque tiene ${afiliados[0].count} afiliados asociados en ${departamento || 'el sistema'}`);
-  }
-  
-  const [result] = await db.query('DELETE FROM cargos WHERE id_cargo = ?', [id]);
-  console.log(`✅ [${rol}] Cargo eliminado:`, id);
-  return result.affectedRows > 0;
 };

@@ -50,7 +50,7 @@ function createWindow() {
       contextIsolation: true,
       enableRemoteModule: false
     },
-    icon: path.join(__dirname, '../frontend/public/icon.png')
+    icon: path.join(__dirname, '../frontend/public/escudo_sindescol.png')
   });
 
   // Cargar la aplicación
@@ -65,8 +65,6 @@ function createWindow() {
     const prodUrl = `http://localhost:${FRONTEND_PORT}`;
     console.log('[Window] Loading production URL:', prodUrl);
     mainWindow.loadURL(prodUrl);
-    // Abre devtools también en producción para debuggear
-    setTimeout(() => mainWindow.webContents.openDevTools(), 500);
   }
 
   // Logging de carga

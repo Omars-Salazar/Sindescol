@@ -1,4 +1,5 @@
 import db from "../config/db.js";
+import { getErrorMessage } from "../utils/errorMessages.js";
 
 // ============================================
 // OBTENER SALARIOS POR CARGO Y MUNICIPIO (para cálculos)

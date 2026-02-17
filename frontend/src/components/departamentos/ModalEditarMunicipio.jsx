@@ -8,6 +8,12 @@ export const ModalEditarMunicipio = ({ isOpen, onClose, onSubmit, municipio, dep
   });
 
   const esPresidenciaDepartamental = usuarioActual?.rol === 'presidencia';
+  const esPresidenciaNacional = usuarioActual?.rol === 'presidencia_nacional';
+
+  // Filtrar departamentos según el rol
+  const departamentosFiltrados = esPresidenciaDepartamental && usuarioActual?.departamento
+    ? departamentos.filter(d => d.departamento === usuarioActual.departamento)
+    : departamentos;
 
   useEffect(() => {
     if (municipio) {
@@ -72,7 +78,7 @@ export const ModalEditarMunicipio = ({ isOpen, onClose, onSubmit, municipio, dep
                   required
                 >
                   <option value="">Seleccionar departamento...</option>
-                  {departamentos.map((depto, index) => (
+                  {departamentosFiltrados.map((depto, index) => (
                     <option key={index} value={depto.departamento}>
                       {depto.departamento}
                     </option>

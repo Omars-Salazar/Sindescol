@@ -17,6 +17,7 @@
     certificatePassword: null,
     signingHashAlgorithms: ["sha256"],
     sign: null,
+    icon: "frontend/public/escudo_sindescol.png",
     target: [
       {
         target: "nsis",

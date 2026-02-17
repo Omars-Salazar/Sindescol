@@ -190,26 +190,30 @@ CREATE TABLE afiliados (
 **Descripción:** Registro de cuotas sindicales pagadas por afiliados.
 
 ```sql
-CREATE TABLE cuotas (
-  id_cuota INT AUTO_INCREMENT PRIMARY KEY,
-  id_afiliado INT NOT NULL,
-  valor DECIMAL(12,2) NOT NULL,
-  fecha_pago DATE NOT NULL,
-  observaciones TEXT,
-  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  
-  FOREIGN KEY (id_afiliado) REFERENCES afiliados(id_afiliado) ON DELETE CASCADE,
-  
-  INDEX idx_afiliado (id_afiliado),
-  INDEX idx_fecha_pago (fecha_pago),
-  INDEX idx_fecha_creacion (fecha_creacion)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS cuotas (
+    id_cuota INT AUTO_INCREMENT PRIMARY KEY,
+    cedula VARCHAR(20) NOT NULL,
+    mes VARCHAR(20) NOT NULL,
+    anio INT NOT NULL,
+    valor DECIMAL(12,2) NOT NULL,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (cedula) REFERENCES afiliados(cedula) ON DELETE CASCADE,
+    UNIQUE KEY unique_cuota (cedula, mes, anio),
+    
+    INDEX idx_cedula (cedula),
+    INDEX idx_mes (mes),
+    INDEX idx_anio (anio),
+    INDEX idx_fecha_registro (fecha_registro)
+);
 ```
 
 **Notas:**
 - `ON DELETE CASCADE`: Si se elimina afiliado, se eliminan sus cuotas
+- `cedula`: Referencia directa al afiliado
+- `mes` y `anio`: Mes y año de la cuota
 - `valor`: Almacena montos en pesos colombianos
-- `fecha_pago`: Fecha real del pago registrado
+- `UNIQUE(cedula, mes, anio)`: Evita duplicados en el mismo mes/año para un afiliado
 
 ---
 

@@ -2,6 +2,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
+import { getErrorMessage } from '../utils/errorMessages.js';
 
 export const login = async (email, password) => {
   try {
@@ -14,7 +15,7 @@ export const login = async (email, password) => {
 
     if (usuarios.length === 0) {
       console.log('❌ Usuario no encontrado o inactivo');
-      throw new Error('Credenciales inválidas');
+      throw new Error(getErrorMessage('AUTH.INVALID_CREDENTIALS'));
     }
 
     const usuario = usuarios[0];
@@ -24,7 +25,7 @@ export const login = async (email, password) => {
 
     if (!passwordValido) {
       console.log('❌ Contraseña incorrecta');
-      throw new Error('Credenciales inválidas');
+      throw new Error(getErrorMessage('AUTH.INVALID_CREDENTIALS'));
     }
 
     console.log('✅ Contraseña válida');
@@ -70,7 +71,7 @@ export const registrarUsuario = async (datos) => {
   );
 
   if (usuariosExistentes.length > 0) {
-    throw new Error('El email ya está registrado');
+    throw new Error(getErrorMessage('AUTH.EMAIL_REGISTERED'));
   }
   
   const passwordHash = await bcrypt.hash(password, 10);

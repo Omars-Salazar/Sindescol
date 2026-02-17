@@ -71,8 +71,23 @@ export const createSalario = async (data) => {
 
 export const updateSalario = async (id, data) => {
   try {
-    const fields = Object.keys(data).map((key) => `${key} = ?`).join(", ");
-    const values = Object.values(data);
+    // Whitelist de campos permitidos para evitar inyecciones SQL y errores de columnas inexistentes
+    const allowedFields = ['id_cargo', 'id_municipio', 'salario'];
+    const filteredData = {};
+    const values = [];
+    
+    for (const [key, value] of Object.entries(data)) {
+      if (allowedFields.includes(key)) {
+        filteredData[key] = value;
+        values.push(value);
+      }
+    }
+    
+    if (Object.keys(filteredData).length === 0) {
+      throw new Error('No se proporcionaron campos válidos para actualizar');
+    }
+    
+    const fields = Object.keys(filteredData).map((key) => `${key} = ?`).join(", ");
     const query = `UPDATE salarios_municipios SET ${fields} WHERE id_salario = ?`;
     await db.query(query, [...values, id]);
     return getSalarioById(id);

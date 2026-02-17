@@ -1,4 +1,5 @@
 import db from "../config/db.js";
+import { getErrorMessage } from "../utils/errorMessages.js";
 
 // ============================================
 // OBTENER MUNICIPIOS CON FILTRADO POR DEPARTAMENTO
@@ -47,7 +48,7 @@ export const getMunicipiosByDepartamento = async (dept, departamento, rol) => {
   // Solo presidencia_nacional puede ver municipios de otros departamentos
   if (rol !== 'presidencia_nacional') {
     if (dept !== departamento) {
-      throw new Error(`No puedes ver municipios de ${dept}. Solo tienes acceso a ${departamento}`);
+      throw new Error(getErrorMessage('MUNICIPIOS.WITHOUT_PERMISSION_VIEW', { departamento: dept }));
     }
   }
 
@@ -88,7 +89,7 @@ export const getDepartamentos = async (departamento, rol) => {
 export const createMunicipio = async (data, rol) => {
   // Solo presidencia_nacional puede crear municipios
   if (rol !== 'presidencia_nacional') {
-    throw new Error('Solo Presidencia Nacional puede crear nuevos municipios');
+    throw new Error(getErrorMessage('MUNICIPIOS.WITHOUT_PERMISSION_CREATE'));
   }
 
   const { nombre_municipio, departamento } = data;
@@ -100,7 +101,7 @@ export const createMunicipio = async (data, rol) => {
   );
 
   if (existente.length > 0) {
-    throw new Error(`El municipio ${nombre_municipio} ya existe en ${departamento}`);
+    throw new Error(getErrorMessage('MUNICIPIOS.ALREADY_EXISTS', { departamento }));
   }
 
   const [result] = await db.query(
@@ -118,7 +119,7 @@ export const createMunicipio = async (data, rol) => {
 export const updateMunicipio = async (id, data, rol) => {
   // Solo presidencia_nacional puede editar municipios
   if (rol !== 'presidencia_nacional') {
-    throw new Error('Solo Presidencia Nacional puede editar municipios');
+    throw new Error(getErrorMessage('MUNICIPIOS.WITHOUT_PERMISSION_EDIT'));
   }
 
   const { nombre_municipio, departamento } = data;
@@ -138,7 +139,7 @@ export const updateMunicipio = async (id, data, rol) => {
 export const deleteMunicipio = async (id, rol) => {
   // Solo presidencia_nacional puede eliminar municipios
   if (rol !== 'presidencia_nacional') {
-    throw new Error('Solo Presidencia Nacional puede eliminar municipios');
+    throw new Error(getErrorMessage('MUNICIPIOS.WITHOUT_PERMISSION_DELETE'));
   }
 
   // Verificar si hay afiliados en este municipio
@@ -149,7 +150,7 @@ export const deleteMunicipio = async (id, rol) => {
   );
 
   if (afiliados[0].count > 0) {
-    throw new Error(`No se puede eliminar el municipio porque tiene ${afiliados[0].count} afiliados asociados`);
+    throw new Error(getErrorMessage('MUNICIPIOS.IN_USE_AFFILIATES', { count: afiliados[0].count }));
   }
 
   // Verificar si hay salarios en este municipio
@@ -159,7 +160,7 @@ export const deleteMunicipio = async (id, rol) => {
   );
 
   if (salarios[0].count > 0) {
-    throw new Error(`No se puede eliminar el municipio porque tiene ${salarios[0].count} salarios registrados`);
+    throw new Error(getErrorMessage('MUNICIPIOS.IN_USE_SALARIES', { count: salarios[0].count }));
   }
 
   const [result] = await db.query('DELETE FROM municipios WHERE id_municipio = ?', [id]);

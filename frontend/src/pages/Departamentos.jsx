@@ -50,14 +50,17 @@ export default function Departamentos() {
           }
         }
 
-        // Si es presidencia (departamental), filtrar para solo mostrar su departamento
+        // Presidencia nacional ve todos los departamentos
+        // Presidencia departamental ve solo su departamento
         if (usuarioActual?.rol === 'presidencia' && usuarioActual?.departamento) {
           departamentosUnicos = departamentosUnicos.filter(
             d => d.departamento === usuarioActual.departamento
           );
         }
+        // Si el rol es 'presidencia_nacional', mostrar todos los departamentos (sin filtro)
         
         console.log("📋 Departamentos cargados:", departamentosUnicos);
+        console.log("👤 Usuario actual:", usuarioActual);
         setDepartamentos(departamentosUnicos);
       }
     } catch (error) {

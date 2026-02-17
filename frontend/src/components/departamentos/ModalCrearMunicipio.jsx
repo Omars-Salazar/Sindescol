@@ -7,21 +7,24 @@ export const ModalCrearMunicipio = ({ isOpen, onClose, onSubmit, departamentos, 
     departamento: ""
   });
 
-  const esDepartamental = usuarioActual?.rol === 'presidencia';
+  // presidencia_nacional puede crear en cualquier departamento
+  // presidencia solo en su departamento
+  const esPresidenciaNacional = usuarioActual?.rol === 'presidencia_nacional';
+  const esPresidenciaDepto = usuarioActual?.rol === 'presidencia';
 
-  // Filtrar departamentos para que solo muestre el del usuario
-  const departamentosFiltrados = usuarioActual?.departamento 
+  // Filtrar departamentos según el rol
+  const departamentosFiltrados = esPresidenciaDepto && usuarioActual?.departamento
     ? departamentos.filter(d => d.departamento === usuarioActual.departamento)
     : departamentos;
 
   useEffect(() => {
-    if (usuarioActual?.departamento) {
+    if (esPresidenciaDepto && usuarioActual?.departamento) {
       setFormData(prev => ({
         ...prev,
         departamento: usuarioActual.departamento
       }));
     }
-  }, [usuarioActual, isOpen]);
+  }, [usuarioActual, isOpen, esPresidenciaDepto]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,7 +49,7 @@ export const ModalCrearMunicipio = ({ isOpen, onClose, onSubmit, departamentos, 
   const resetForm = () => {
     setFormData({
       nombre_municipio: "",
-      departamento: esDepartamental ? usuarioActual?.departamento || "" : ""
+      departamento: esPresidenciaDepto ? usuarioActual?.departamento || "" : ""
     });
   };
 
@@ -66,7 +69,7 @@ export const ModalCrearMunicipio = ({ isOpen, onClose, onSubmit, departamentos, 
           <div className="modal-departamentos-body">
             <div className="form-group">
               <label>Departamento *</label>
-              {esDepartamental ? (
+              {esPresidenciaDepto ? (
                 <div style={{ 
                   padding: '0.75rem', 
                   background: '#f0f0f0', 

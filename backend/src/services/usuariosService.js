@@ -1,6 +1,7 @@
 // backend/src/services/usuariosService.js
 import bcrypt from 'bcryptjs';
 import pool from '../config/db.js';
+import { getErrorMessage } from '../utils/errorMessages.js';
 
 export const getUsuarios = async (rolSolicitante, departamentoSolicitante) => {
   try {

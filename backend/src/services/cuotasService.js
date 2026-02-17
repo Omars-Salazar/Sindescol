@@ -1,4 +1,5 @@
 import db from "../config/db.js";
+import { getErrorMessage } from "../utils/errorMessages.js";
 
 // ============================================
 // OBTENER CUOTAS CON FILTRADO POR DEPARTAMENTO
@@ -50,12 +51,19 @@ export const getCuotaById = async (id) => {
 // CREAR CUOTA CON VALIDACIÓN DE DEPARTAMENTO
 // ============================================
 export const createCuota = async (data, departamento, rol) => {
-  const { cedula, mes, estado_pago } = data;
-  const anio = data.anio ?? data.ano;
-  const valor_cuota = data.valor_cuota ?? data.valor;
+  // Normalizar el nombre del campo 'ano' a 'anio'
+  const normalizedData = {
+    ...data,
+    anio: data.anio ?? data.ano,
+    valor_cuota: data.valor_cuota ?? data.valor
+  };
+  
+  const { cedula, mes, estado_pago } = normalizedData;
+  const anio = normalizedData.anio;
+  const valor_cuota = normalizedData.valor_cuota;
 
   if (!cedula || !mes || !anio || !valor_cuota) {
-    throw new Error('Faltan datos obligatorios para registrar la cuota (cedula, mes, anio y valor).');
+    throw new Error(getErrorMessage('CUOTAS.MISSING_DATA'));
   }
 
   // VALIDAR QUE EL AFILIADO PERTENECE AL DEPARTAMENTO DEL USUARIO
@@ -68,13 +76,13 @@ export const createCuota = async (data, departamento, rol) => {
   );
 
   if (afiliado.length === 0) {
-    throw new Error('No existe un afiliado con esa cédula.');
+    throw new Error(getErrorMessage('CUOTAS.AFFILIATE_NOT_FOUND'));
   }
 
   // Solo presidencia_nacional puede crear cuotas para cualquier departamento
   if (rol !== 'presidencia_nacional') {
     if (afiliado[0].departamento !== departamento) {
-      throw new Error(`No puedes crear cuotas para afiliados de ${afiliado[0].departamento}. Solo puedes gestionar cuotas de ${departamento}`);
+      throw new Error(getErrorMessage('CUOTAS.WITHOUT_PERMISSION', { departamento: afiliado[0].departamento }));
     }
   }
 
@@ -85,16 +93,16 @@ export const createCuota = async (data, departamento, rol) => {
   );
 
   if (existente.length > 0) {
-    throw new Error(`Ya existe una cuota registrada para ${mes}/${anio} con esta cédula.`);
+    throw new Error(getErrorMessage('CUOTAS.DUPLICATE_QUOTA', { mes, anio }));
   }
 
   const [result] = await db.query(
-    'INSERT INTO cuotas (cedula, mes, anio, valor_cuota, estado_pago) VALUES (?, ?, ?, ?, ?)',
-    [cedula, mes, anio, valor_cuota, estado_pago || 'pendiente']
+    'INSERT INTO cuotas (cedula, mes, anio, valor) VALUES (?, ?, ?, ?)',
+    [cedula, mes, anio, valor_cuota]
   );
 
   console.log(`✅ [${rol}] Cuota creada para ${cedula} en ${departamento || 'TODOS'}:`, { id_cuota: result.insertId, mes, anio });
-  return { id_cuota: result.insertId, cedula, mes, anio, valor_cuota, estado_pago };
+  return { id_cuota: result.insertId, cedula, mes, anio, valor: valor_cuota };
 };
 
 // ============================================
@@ -112,27 +120,34 @@ export const updateCuota = async (id, data, departamento, rol) => {
   );
 
   if (cuotaActual.length === 0) {
-    throw new Error('Cuota no encontrada');
+    throw new Error(getErrorMessage('CUOTAS.NOT_FOUND'));
   }
 
   // Solo presidencia_nacional puede editar cuotas de cualquier departamento
   if (rol !== 'presidencia_nacional') {
     if (cuotaActual[0].departamento !== departamento) {
-      throw new Error(`No puedes editar esta cuota. Pertenece a ${cuotaActual[0].departamento}`);
+      throw new Error(getErrorMessage('CUOTAS.WITHOUT_PERMISSION', { departamento: cuotaActual[0].departamento }));
     }
   }
 
-  const { mes, estado_pago } = data;
-  const anio = data.anio ?? data.ano;
-  const valor_cuota = data.valor_cuota ?? data.valor;
+  // Normalizar el nombre del campo 'ano' a 'anio'
+  const normalizedData = {
+    ...data,
+    anio: data.anio ?? data.ano,
+    valor_cuota: data.valor_cuota ?? data.valor
+  };
+  
+  const { mes, estado_pago } = normalizedData;
+  const anio = normalizedData.anio;
+  const valor_cuota = normalizedData.valor_cuota;
 
   if (!mes || !anio || !valor_cuota) {
-    throw new Error('Faltan datos obligatorios para actualizar la cuota (mes, anio y valor).');
+    throw new Error(getErrorMessage('CUOTAS.UPDATING_MISSING_DATA'));
   }
 
   await db.query(
-    'UPDATE cuotas SET mes = ?, anio = ?, valor_cuota = ?, estado_pago = ? WHERE id_cuota = ?',
-    [mes, anio, valor_cuota, estado_pago, id]
+    'UPDATE cuotas SET mes = ?, anio = ?, valor = ? WHERE id_cuota = ?',
+    [mes, anio, valor_cuota, id]
   );
 
   console.log(`✅ [${rol}] Cuota actualizada:`, id);
@@ -154,13 +169,13 @@ export const deleteCuota = async (id, departamento, rol) => {
   );
 
   if (cuotaActual.length === 0) {
-    throw new Error('La cuota no existe o fue eliminada.');
+    throw new Error(getErrorMessage('CUOTAS.NOT_FOUND'));
   }
 
   // Solo presidencia_nacional puede eliminar cuotas de cualquier departamento
   if (rol !== 'presidencia_nacional') {
     if (cuotaActual[0].departamento !== departamento) {
-      throw new Error(`No puedes eliminar esta cuota. Pertenece a ${cuotaActual[0].departamento}`);
+      throw new Error(getErrorMessage('CUOTAS.DELETE_WITHOUT_PERMISSION'));
     }
   }
 
@@ -183,13 +198,13 @@ export const getCuotasByCedula = async (cedula, departamento, rol) => {
   );
 
   if (afiliado.length === 0) {
-    throw new Error('Afiliado no encontrado');
+    throw new Error(getErrorMessage('CUOTAS.AFFILIATE_NOT_FOUND'));
   }
 
   // Solo presidencia_nacional puede ver cuotas de cualquier departamento
   if (rol !== 'presidencia_nacional') {
     if (afiliado[0].departamento !== departamento) {
-      throw new Error(`No puedes ver las cuotas de este afiliado. Pertenece a ${afiliado[0].departamento}`);
+      throw new Error(getErrorMessage('CUOTAS.WITHOUT_PERMISSION', { departamento: afiliado[0].departamento }));
     }
   }
 
