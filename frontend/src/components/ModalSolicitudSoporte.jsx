@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getApiUrl } from '../config/api.config.js';
 import './ModalSolicitudSoporte.css';
 
 export default function ModalSolicitudSoporte({ isOpen, onClose }) {
@@ -32,7 +33,7 @@ export default function ModalSolicitudSoporte({ isOpen, onClose }) {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:4000/api/auth/support-request', {
+      const response = await fetch(getApiUrl('/auth/support-request'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

@@ -50,7 +50,13 @@ export const getCuotaById = async (id) => {
 // CREAR CUOTA CON VALIDACIÓN DE DEPARTAMENTO
 // ============================================
 export const createCuota = async (data, departamento, rol) => {
-  const { cedula, mes, ano, valor_cuota, estado_pago } = data;
+  const { cedula, mes, estado_pago } = data;
+  const anio = data.anio ?? data.ano;
+  const valor_cuota = data.valor_cuota ?? data.valor;
+
+  if (!cedula || !mes || !anio || !valor_cuota) {
+    throw new Error('Faltan datos obligatorios para registrar la cuota (cedula, mes, anio y valor).');
+  }
 
   // VALIDAR QUE EL AFILIADO PERTENECE AL DEPARTAMENTO DEL USUARIO
   const [afiliado] = await db.query(
@@ -62,7 +68,7 @@ export const createCuota = async (data, departamento, rol) => {
   );
 
   if (afiliado.length === 0) {
-    throw new Error('Afiliado no encontrado con esa cédula');
+    throw new Error('No existe un afiliado con esa cédula.');
   }
 
   // Solo presidencia_nacional puede crear cuotas para cualquier departamento
@@ -74,21 +80,21 @@ export const createCuota = async (data, departamento, rol) => {
 
   // Verificar si ya existe una cuota para ese afiliado en ese mes/año
   const [existente] = await db.query(
-    'SELECT id_cuota FROM cuotas WHERE cedula = ? AND mes = ? AND ano = ?',
-    [cedula, mes, ano]
+    'SELECT id_cuota FROM cuotas WHERE cedula = ? AND mes = ? AND anio = ?',
+    [cedula, mes, anio]
   );
 
   if (existente.length > 0) {
-    throw new Error(`Ya existe una cuota registrada para ${mes}/${ano} con esta cédula`);
+    throw new Error(`Ya existe una cuota registrada para ${mes}/${anio} con esta cédula.`);
   }
 
   const [result] = await db.query(
-    'INSERT INTO cuotas (cedula, mes, ano, valor_cuota, estado_pago) VALUES (?, ?, ?, ?, ?)',
-    [cedula, mes, ano, valor_cuota, estado_pago || 'pendiente']
+    'INSERT INTO cuotas (cedula, mes, anio, valor_cuota, estado_pago) VALUES (?, ?, ?, ?, ?)',
+    [cedula, mes, anio, valor_cuota, estado_pago || 'pendiente']
   );
 
-  console.log(`✅ [${rol}] Cuota creada para ${cedula} en ${departamento || 'TODOS'}:`, { id_cuota: result.insertId, mes, ano });
-  return { id_cuota: result.insertId, cedula, mes, ano, valor_cuota, estado_pago };
+  console.log(`✅ [${rol}] Cuota creada para ${cedula} en ${departamento || 'TODOS'}:`, { id_cuota: result.insertId, mes, anio });
+  return { id_cuota: result.insertId, cedula, mes, anio, valor_cuota, estado_pago };
 };
 
 // ============================================
@@ -116,11 +122,17 @@ export const updateCuota = async (id, data, departamento, rol) => {
     }
   }
 
-  const { mes, ano, valor_cuota, estado_pago } = data;
+  const { mes, estado_pago } = data;
+  const anio = data.anio ?? data.ano;
+  const valor_cuota = data.valor_cuota ?? data.valor;
+
+  if (!mes || !anio || !valor_cuota) {
+    throw new Error('Faltan datos obligatorios para actualizar la cuota (mes, anio y valor).');
+  }
 
   await db.query(
-    'UPDATE cuotas SET mes = ?, ano = ?, valor_cuota = ?, estado_pago = ? WHERE id_cuota = ?',
-    [mes, ano, valor_cuota, estado_pago, id]
+    'UPDATE cuotas SET mes = ?, anio = ?, valor_cuota = ?, estado_pago = ? WHERE id_cuota = ?',
+    [mes, anio, valor_cuota, estado_pago, id]
   );
 
   console.log(`✅ [${rol}] Cuota actualizada:`, id);
@@ -142,7 +154,7 @@ export const deleteCuota = async (id, departamento, rol) => {
   );
 
   if (cuotaActual.length === 0) {
-    throw new Error('Cuota no encontrada');
+    throw new Error('La cuota no existe o fue eliminada.');
   }
 
   // Solo presidencia_nacional puede eliminar cuotas de cualquier departamento
@@ -182,7 +194,7 @@ export const getCuotasByCedula = async (cedula, departamento, rol) => {
   }
 
   const [cuotas] = await db.query(
-    'SELECT * FROM cuotas WHERE cedula = ? ORDER BY ano DESC, mes DESC',
+    'SELECT * FROM cuotas WHERE cedula = ? ORDER BY anio DESC, mes DESC',
     [cedula]
   );
 

@@ -76,6 +76,34 @@ export const ModalEditarAfiliado = ({ isOpen, onClose, afiliadoId, onSubmit }) =
     }
   }, [isOpen]);
 
+  // Efecto para cargar cargos disponibles según el municipio seleccionado
+  useEffect(() => {
+    const cargarCargosPorMunicipio = async () => {
+      if (formData.municipio_trabajo && !loading) {
+        try {
+          const response = await fetchWithAuth(`/api/cargos/municipio/${formData.municipio_trabajo}`);
+          if (!response.ok) {
+            console.error('Error al obtener cargos por municipio');
+            setOpciones(prev => ({ ...prev, cargos: [] }));
+            return;
+          }
+          
+          const data = await response.json();
+          setOpciones(prev => ({ ...prev, cargos: data.data || [] }));
+          console.log(`✅ Cargos disponibles para municipio ${formData.municipio_trabajo}:`, data.data?.length || 0);
+        } catch (error) {
+          console.error('Error cargando cargos por municipio:', error);
+          setOpciones(prev => ({ ...prev, cargos: [] }));
+        }
+      } else if (!formData.municipio_trabajo && !loading) {
+        // Si no hay municipio seleccionado, cargar todos los cargos
+        cargarOpciones();
+      }
+    };
+
+    cargarCargosPorMunicipio();
+  }, [formData.municipio_trabajo]);
+
   // Calcular salario cuando cambie el cargo o municipio en edición
   useEffect(() => {
     const calcularSalario = async () => {
@@ -287,10 +315,31 @@ export const ModalEditarAfiliado = ({ isOpen, onClose, afiliadoId, onSubmit }) =
         alert(`Error al procesar el archivo ${name}`);
       }
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+      // Si se cambia el departamento, resetear municipio y cargo
+      if (name === 'departamento_trabajo') {
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+          municipio_trabajo: '',
+          id_cargo: ''
+        }));
+        setSalarioCalculado(null);
+      }
+      // Si se cambia el municipio, resetear el cargo
+      else if (name === 'municipio_trabajo') {
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+          id_cargo: ''
+        }));
+        setSalarioCalculado(null);
+      }
+      else {
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+        }));
+      }
     }
   };
 
@@ -590,79 +639,152 @@ export const ModalEditarAfiliado = ({ isOpen, onClose, afiliadoId, onSubmit }) =
           {activeTab === "laborales" && (
             <div className="tab-content">
               <fieldset className="fieldset">
-                <legend>Información Básica</legend>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Cargo *</label>
-                    <select name="id_cargo" value={formData.id_cargo} onChange={handleChange} required>
-                      <option value="">Seleccionar...</option>
-                      {opciones.cargos.map((c) => (
-                        <option key={c.id_cargo} value={c.id_cargo}>{c.nombre_cargo}</option>
-                      ))}
-                    </select>
-                  </div>
+                <legend>Información Laboral</legend>
+                
+                <div className="labor-steps">
+                  {/* PASO 1: Departamento (solo para presidencia_nacional) */}
                   {usuario?.rol === 'presidencia_nacional' && (
-                    <div className="form-group">
-                      <label>Departamento de Trabajo</label>
-                      <select
-                        name="departamento_trabajo"
-                        value={formData.departamento_trabajo}
-                        onChange={handleChange}
-                      >
-                        <option value="">Seleccionar...</option>
-                        {opciones.departamentos.map((d) => (
-                          <option key={d.departamento} value={d.departamento}>{d.departamento}</option>
-                        ))}
-                      </select>
+                    <div className={`step-card ${formData.departamento_trabajo ? 'completed' : ''}`}>
+                      <div className="step-header">
+                        <div className="step-number">1</div>
+                        <span className="step-label">Departamento de Trabajo</span>
+                        <span className="step-hint">Requerido</span>
+                      </div>
+                      <div className="step-content">
+                        <select
+                          name="departamento_trabajo"
+                          value={formData.departamento_trabajo}
+                          onChange={handleChange}
+                          required
+                        >
+                          <option value="">Seleccionar departamento...</option>
+                          {opciones.departamentos.map((d) => (
+                            <option key={d.departamento} value={d.departamento}>{d.departamento}</option>
+                          ))}
+                        </select>
+                        <small>Selecciona el departamento donde labora el afiliado</small>
+                      </div>
                     </div>
                   )}
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Municipio de Trabajo</label>
-                    <select 
-                      name="municipio_trabajo" 
-                      value={formData.municipio_trabajo} 
-                      onChange={handleChange}
-                      disabled={usuario?.rol === 'presidencia_nacional' && !formData.departamento_trabajo}
-                    >
-                      <option value="">
-                        {usuario?.rol === 'presidencia_nacional' && !formData.departamento_trabajo
-                          ? "Selecciona un departamento primero"
-                          : "Seleccionar..."}
-                      </option>
-                      {opciones.municipios
-                        .filter((m) => {
-                          if (usuario?.rol === 'presidencia_nacional') {
-                            // Presidencia nacional: solo municipios del departamento seleccionado
-                            return formData.departamento_trabajo && m.departamento === formData.departamento_trabajo;
-                          } else if (usuario?.departamento) {
-                            // Otros roles (presidencia): solo municipios de su departamento
-                            return m.departamento === usuario.departamento;
-                          }
-                          return true;
-                        })
-                        .map((m) => (
-                          <option key={m.id_municipio} value={m.id_municipio}>{m.nombre_municipio}</option>
-                        ))}
-                    </select>
+                  
+                  {/* PASO 2: Municipio */}
+                  <div className={`step-card ${formData.municipio_trabajo ? 'completed' : ''} ${usuario?.rol === 'presidencia_nacional' && !formData.departamento_trabajo ? 'disabled' : ''}`}>
+                    <div className="step-header">
+                      <div className="step-number">{usuario?.rol === 'presidencia_nacional' ? '2' : '1'}</div>
+                      <span className="step-label">Municipio de Trabajo</span>
+                      <span className="step-hint">Requerido</span>
+                    </div>
+                    <div className="step-content">
+                      <select 
+                        name="municipio_trabajo" 
+                        value={formData.municipio_trabajo} 
+                        onChange={handleChange}
+                        required
+                        disabled={usuario?.rol === 'presidencia_nacional' && !formData.departamento_trabajo}
+                      >
+                        <option value="">
+                          {usuario?.rol === 'presidencia_nacional' && !formData.departamento_trabajo
+                            ? "⚠️ Selecciona un departamento primero"
+                            : "Selecciona el municipio de trabajo..."}
+                        </option>
+                        {opciones.municipios
+                          .filter((m) => {
+                            if (usuario?.rol === 'presidencia_nacional') {
+                              return formData.departamento_trabajo && m.departamento === formData.departamento_trabajo;
+                            } else if (usuario?.departamento) {
+                              return m.departamento === usuario.departamento;
+                            }
+                            return true;
+                          })
+                          .map((m) => (
+                            <option key={m.id_municipio} value={m.id_municipio}>{m.nombre_municipio}</option>
+                          ))}
+                      </select>
+                      <small>El municipio debe estar en el departamento seleccionado</small>
+                    </div>
                   </div>
-
-                  <div className="form-group">
-                    <label>Salario Asociado</label>
+                  
+                  {/* PASO 3: Cargo */}
+                  <div className={`step-card ${formData.id_cargo ? 'completed' : ''} ${!formData.municipio_trabajo ? 'disabled' : ''}`}>
+                    <div className="step-header">
+                      <div className="step-number">{usuario?.rol === 'presidencia_nacional' ? '3' : '2'}</div>
+                      <span className="step-label">Cargo</span>
+                      <span className="step-hint">Requerido</span>
+                    </div>
+                    <div className="step-content">
+                      <select 
+                        name="id_cargo" 
+                        value={formData.id_cargo} 
+                        onChange={handleChange} 
+                        required
+                        disabled={!formData.municipio_trabajo}
+                      >
+                        <option value="">
+                          {!formData.municipio_trabajo
+                            ? "⚠️ Selecciona un municipio primero"
+                            : opciones.cargos.length === 0
+                              ? "⚠️ No hay cargos disponibles para este municipio"
+                              : "Selecciona un cargo..."}
+                        </option>
+                        {opciones.cargos.map((c) => (
+                          <option key={c.id_cargo} value={c.id_cargo}>{c.nombre_cargo}</option>
+                        ))}
+                      </select>
+                      {formData.municipio_trabajo && opciones.cargos.length > 0 && (
+                        <div className="availability-badge">
+                          ✓ {opciones.cargos.length} cargo(s) disponible(s)
+                        </div>
+                      )}
+                      {formData.municipio_trabajo && opciones.cargos.length === 0 && (
+                        <div className="availability-badge empty">
+                          ✕ Ningún cargo disponible en este municipio
+                        </div>
+                      )}
+                      <small>Los cargos mostrados están disponibles en el municipio seleccionado</small>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* SALARIO */}
+                <div className="step-card">
+                  <div className="step-header">
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '18px',
+                      flexShrink: 0
+                    }}>💰</div>
+                    <span className="step-label">Salario Asociado</span>
+                  </div>
+                  <div className="step-content">
                     <input
                       type="text"
                       value={salarioCalculado ? `$${salarioCalculado.toLocaleString()}` : "Selecciona cargo y municipio"}
                       disabled
                       style={{
-                        background: "#f0f0f0",
-                        color: "#333",
-                        fontWeight: "bold",
-                        cursor: "not-allowed"
+                        backgroundColor: salarioCalculado ? '#f0fdf4' : '#f5f5f5',
+                        color: salarioCalculado ? '#16a34a' : '#666',
+                        fontWeight: salarioCalculado ? '700' : '600',
+                        fontSize: salarioCalculado ? '16px' : '14px',
+                        cursor: 'not-allowed',
+                        borderColor: salarioCalculado ? '#86efac' : '#ddd'
                       }}
                     />
+                    {salarioCalculado && (
+                      <div className="availability-badge">
+                        ✓ Salario encontrado en la base de datos
+                      </div>
+                    )}
                   </div>
                 </div>
+              </fieldset>
+
+              {/* FECHA DE AFILIACIÓN */}
+              <fieldset className="fieldset">
+                <legend>Información Adicional</legend>
                 <div className="form-row">
                   <div className="form-group">
                     <label>Fecha de Afiliación</label>

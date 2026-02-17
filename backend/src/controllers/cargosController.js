@@ -37,6 +37,18 @@ export const cargosController = {
     }
   },
 
+  getCargosByMunicipio: async (req, res) => {
+    try {
+      const { id_municipio } = req.params;
+      console.log(`🎯 GET /cargos/municipio/${id_municipio} - Obteniendo cargos`);
+      const cargos = await cargosService.getCargosByMunicipio(id_municipio);
+      res.json({ success: true, data: cargos });
+    } catch (error) {
+      console.error('Error en getCargosByMunicipio:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
   createCargo: async (req, res) => {
     try {
       const { rol } = req.user;

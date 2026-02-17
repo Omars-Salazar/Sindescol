@@ -319,30 +319,56 @@ nav a:hover img {
 
 /* Alert */
 .alert {
-  padding: 1rem;
-  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
   margin-bottom: 1rem;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid transparent;
+}
+
+.alert::before {
+  content: "ℹ️";
+  font-size: 1.1rem;
+  line-height: 1.2;
+  margin-top: 1px;
 }
 
 .alert-success {
   background: #C8E6C9;
   color: #1B5E20;
   border-left: 4px solid var(--success);
+  border-color: rgba(76, 175, 80, 0.25);
+}
+
+.alert-success::before {
+  content: "✅";
 }
 
 .alert-danger {
   background: #FFCDD2;
   color: #B71C1C;
   border-left: 4px solid var(--primary-red);
+  border-color: rgba(211, 47, 47, 0.25);
+}
+
+.alert-danger::before {
+  content: "⚠️";
 }
 
 .alert-warning {
   background: #FFF9C4;
   color: #F57F17;
   border-left: 4px solid var(--primary-yellow);
+  border-color: rgba(255, 193, 7, 0.25);
+}
+
+.alert-warning::before {
+  content: "⚠️";
 }
 
 /* Loading & Empty States */

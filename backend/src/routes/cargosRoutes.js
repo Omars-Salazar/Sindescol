@@ -6,6 +6,9 @@ const router = express.Router();
 // Listar todos los cargos (filtrado automático por departamento)
 router.get('/', cargosController.getCargos);
 
+// Obtener cargos por municipio (DEBE IR ANTES que /:id/municipios)
+router.get('/municipio/:id_municipio', cargosController.getCargosByMunicipio);
+
 // Obtener municipios y salarios por cargo (DEBE IR ANTES que /:id)
 router.get('/:id/municipios', cargosController.getMunicipiosByCargo);
 

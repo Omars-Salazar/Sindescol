@@ -1,0 +1,129 @@
+name: 🧪 Tests Automatizados
+
+# Ejecutar cuando haya push o pull request
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════
+  # BACKEND TESTS
+  # ═══════════════════════════════════════════════════════════════
+  backend-tests:
+    runs-on: ubuntu-latest
+    name: Backend - Jest Tests
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+      # 1. Clonar el código
+      - name: 📥 Clonar repositorio
+        uses: actions/checkout@v4
+      
+      # 2. Configurar Node.js
+      - name: 🔧 Configurar Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      
+      # 3. Instalar dependencias
+      - name: 📦 Instalar dependencias Backend
+        working-directory: backend
+        run: npm ci
+      
+      # 4. Ejecutar linter (si existe)
+      - name: 📋 Linter (opcional)
+        working-directory: backend
+        run: npm run lint --if-present || echo "No lint configured"
+      
+      # 5. Ejecutar tests
+      - name: 🧪 Ejecutar tests
+        working-directory: backend
+        run: npm test
+      
+      # 6. Generar reporte de cobertura
+      - name: 📊 Cobertura de código
+        working-directory: backend
+        run: npm test -- --coverage || exit 0
+      
+      # 7. Subir cobertura a Codecov
+      - name: 📈 Subir a Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./backend/coverage/lcov.info
+          flags: backend
+          fail_ci_if_error: false
+
+  # ═══════════════════════════════════════════════════════════════
+  # FRONTEND TESTS
+  # ═══════════════════════════════════════════════════════════════
+  frontend-tests:
+    runs-on: ubuntu-latest
+    name: Frontend - Vitest Tests
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+      # 1. Clonar el código
+      - name: 📥 Clonar repositorio
+        uses: actions/checkout@v4
+      
+      # 2. Configurar Node.js
+      - name: 🔧 Configurar Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      # 3. Instalar dependencias
+      - name: 📦 Instalar dependencias Frontend
+        working-directory: frontend
+        run: npm ci
+      
+      # 4. Ejecutar tests
+      - name: 🧪 Ejecutar tests
+        working-directory: frontend
+        run: npm test
+      
+      # 5. Build de producción
+      - name: 🏗️ Build producción
+        working-directory: frontend
+        run: npm run build
+      
+      # 6. Subir cobertura a Codecov
+      - name: 📈 Subir a Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./frontend/coverage/lcov.info
+          flags: frontend
+          fail_ci_if_error: false
+
+  # ═══════════════════════════════════════════════════════════════
+  # REPORTE FINAL
+  # ═══════════════════════════════════════════════════════════════
+  test-report:
+    needs: [backend-tests, frontend-tests]
+    runs-on: ubuntu-latest
+    name: 📋 Reporte de Tests
+    if: always()
+    
+    steps:
+      - name: ✅ Resumen
+        run: |
+          echo "════════════════════════════════════════════════════"
+          echo "  ✅ PIPELINE DE TESTING COMPLETADO"
+          echo "════════════════════════════════════════════════════"
+          echo ""
+          echo "Backend Tests: ${{ needs.backend-tests.result }}"
+          echo "Frontend Tests: ${{ needs.frontend-tests.result }}"
+          echo ""
+          echo "Para más detalles, revisa los logs arriba ☝️"

@@ -14,6 +14,7 @@ function Afiliados() {
   const [modalEliminarOpen, setModalEliminarOpen] = useState(false);
   const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState(null);
 
   // OPTIMIZACIÓN: Estados de paginación y búsqueda
   const [paginaActual, setPaginaActual] = useState(1);
@@ -65,73 +66,56 @@ function Afiliados() {
     }
   };
 
- const cargarAfiliados = async () => {
-  try {
-    setLoading(true);
-    const response = await fetchWithAuth("/api/afiliados");
-
-    if (!response.ok) {
-      throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    const text = await response.text();
-    let data;
+  const cargarAfiliados = async () => {
     try {
-      data = JSON.parse(text);
-    } catch (e) {
-      throw new Error("Respuesta no es JSON válido");
-    }
+      setLoading(true);
+      const response = await fetchWithAuth("/api/afiliados");
+      const data = await response.json();
 
-    if (data.success) {
-      console.log(`✅ Cargados ${data.data?.length || 0} afiliados`);
-      setAfiliados(data.data || []);
+      if (data.success) {
+        console.log(`✅ Cargados ${data.data?.length || 0} afiliados`);
+        setAfiliados(data.data || []);
+      } else {
+        setAfiliados([]);
+        showAlert(data.message || data.error || "No se pudieron cargar los afiliados", "danger");
+      }
+    } catch (error) {
+      console.error("Error completo:", error);
+      setAfiliados([]);
+      showAlert(error.message || "Error al cargar afiliados", "danger");
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error completo:", error);
-    setAfiliados([]);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleCrearAfiliado = async (formData) => {
-  try {
-    console.log("Enviando datos del afiliado...");
-    const response = await fetchWithAuth("/api/afiliados", {
-      method: "POST",
-      body: JSON.stringify(formData)
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error HTTP ${response.status}`);
-    }
-
-    const text = await response.text();
-    let data;
     try {
-      data = JSON.parse(text);
-    } catch (e) {
-      throw new Error("Respuesta no es JSON válido");
-    }
+      console.log("Enviando datos del afiliado...");
+      const response = await fetchWithAuth("/api/afiliados", {
+        method: "POST",
+        body: JSON.stringify(formData)
+      });
 
-    if (data.success) {
-      console.log("✅ Afiliado creado exitosamente");
-      setModalCrearOpen(false);
-      cargarAfiliados();
-      alert("✅ Afiliado creado exitosamente");
-    } else {
-      console.error("Error del servidor:", data.error);
-      alert("❌ Error al crear afiliado: " + data.error);
+      const data = await response.json();
+
+      if (data.success) {
+        console.log("✅ Afiliado creado exitosamente");
+        setModalCrearOpen(false);
+        cargarAfiliados();
+        showAlert("Afiliado creado exitosamente", "success");
+      } else {
+        console.error("Error del servidor:", data.error || data.message);
+        showAlert(data.message || data.error || "Error al crear afiliado", "danger");
+      }
+    } catch (error) {
+      console.error("Error creando afiliado:", error);
+      showAlert(error.message || "Error al crear afiliado", "danger");
     }
-  } catch (error) {
-    console.error("Error creando afiliado:", error);
-    alert("❌ Error al crear afiliado");
-  }
-};
+  };
 
   const handleEditarAfiliado = async (afiliadoId, formData) => {
-  try {
-    console.log("Enviando datos del afiliado...");
+    try {
+      console.log("Enviando datos del afiliado...");
     
     // Filtrar solo los campos permitidos por el backend
     const camposPermitidos = [
@@ -149,77 +133,57 @@ function Afiliados() {
       }
     }
     
-    const response = await fetchWithAuth(`/api/afiliados/${afiliadoId}`, {
-      method: "PUT",
-      body: JSON.stringify(datosLimpios)
-    });
+      const response = await fetchWithAuth(`/api/afiliados/${afiliadoId}`, {
+        method: "PUT",
+        body: JSON.stringify(datosLimpios)
+      });
 
-    if (!response.ok) {
-      throw new Error(`Error HTTP ${response.status}`);
-    }
+      const data = await response.json();
 
-    const text = await response.text();
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch (e) {
-      throw new Error("Respuesta no es JSON válido");
+      if (data.success) {
+        console.log("✅ Afiliado editado exitosamente");
+        setModalEditarOpen(false);
+        cargarAfiliados();
+        showAlert("Afiliado actualizado exitosamente", "success");
+      } else {
+        console.error("Error del servidor:", data.error || data.message);
+        showAlert(data.message || data.error || "Error al editar afiliado", "danger");
+      }
+    } catch (error) {
+      console.error("Error editando afiliado:", error);
+      showAlert(error.message || "Error al editar afiliado", "danger");
     }
-
-    if (data.success) {
-      console.log("✅ Afiliado editado exitosamente");
-      setModalEditarOpen(false);
-      cargarAfiliados();
-      alert("✅ Afiliado editado exitosamente");
-    } else {
-      console.error("Error del servidor:", data.error);
-      alert("❌ Error al editar afiliado: " + data.error);
-    }
-  } catch (error) {
-    console.error("Error editando afiliado:", error);
-    alert("❌ Error al editar afiliado");
-  }
-};
+  };
 
   const handleEliminarAfiliado = async () => {
-  try {
-    if (!afiliadoSeleccionado) {
-      alert("❌ No hay afiliado seleccionado");
-      return;
-    }
-
-    console.log("Eliminando afiliado con ID:", afiliadoSeleccionado);
-    const response = await fetchWithAuth(`/api/afiliados/${afiliadoSeleccionado}`, {
-      method: "DELETE"
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error HTTP ${response.status}`);
-    }
-
-    const text = await response.text();
-    let data;
     try {
-      data = JSON.parse(text);
-    } catch (e) {
-      throw new Error("Respuesta no es JSON válido");
-    }
+      if (!afiliadoSeleccionado) {
+        showAlert("No hay afiliado seleccionado", "warning");
+        return;
+      }
 
-    if (data.success) {
-      console.log("✅ Afiliado eliminado exitosamente");
-      setModalEliminarOpen(false);
-      setAfiliadoSeleccionado(null);
-      cargarAfiliados();
-      alert("✅ Afiliado eliminado exitosamente");
-    } else {
-      console.error("Error del servidor:", data.error);
-      alert("❌ Error al eliminar afiliado: " + data.error);
+      console.log("Eliminando afiliado con ID:", afiliadoSeleccionado);
+      const response = await fetchWithAuth(`/api/afiliados/${afiliadoSeleccionado}`, {
+        method: "DELETE"
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log("✅ Afiliado eliminado exitosamente");
+        setModalEliminarOpen(false);
+        setAfiliadoSeleccionado(null);
+        cargarAfiliados();
+        showAlert("Afiliado eliminado exitosamente", "success");
+      } else {
+        console.error("Error del servidor:", data.error || data.message);
+        showAlert(data.message || data.error || "Error al eliminar afiliado", "danger");
+      }
+    } catch (error) {
+      console.error("Error eliminando afiliado:", error);
+      showAlert(error.message || "Error al eliminar afiliado", "danger");
     }
-  } catch (error) {
-    console.error("Error eliminando afiliado:", error);
-    alert("❌ Error al eliminar afiliado");
-  }
-};
+  };
 
   const handleVerAfiliado = (id) => {
     setAfiliadoSeleccionado(id);
@@ -299,6 +263,11 @@ function Afiliados() {
     return numeros;
   };
 
+  const showAlert = (message, type) => {
+    setAlert({ message, type });
+    setTimeout(() => setAlert(null), 4000);
+  };
+
   return (
     <div className="afiliados-container">
       <div className="afiliados-header">
@@ -307,6 +276,8 @@ function Afiliados() {
           + Nuevo Afiliado
         </button>
       </div>
+
+      {alert && <div className={`alert alert-${alert.type}`}>{alert.message}</div>}
 
       {/* OPTIMIZACIÓN: Barra de búsqueda */}
       <div style={{ 

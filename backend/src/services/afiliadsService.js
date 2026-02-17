@@ -79,6 +79,48 @@ export const getAfiliadoById = async (id) => {
 };
 
 // ============================================
+// OBTENER AFILIADO POR CÉDULA (sin filtro de departamento)
+// ============================================
+export const getAfiliadoByCedula = async (cedula) => {
+  const query = `
+    SELECT a.*, 
+           c.nombre_cargo,
+           r.nombre_religion,
+           md.nombre_municipio as municipio_domicilio_nombre,
+           mr.nombre_municipio as municipio_residencia_nombre,
+           mt.nombre_municipio as municipio_trabajo_nombre,
+           mt.departamento as departamento_trabajo,
+           e.nombre_eps,
+           ar.nombre_arl,
+           p.nombre_pension,
+           ce.nombre_cesantias,
+           ie.nombre_institucion,
+           ie.correo_institucional,
+           ie.telefono_institucional,
+           ie.direccion_institucion
+    FROM afiliados a
+    LEFT JOIN cargos c ON a.id_cargo = c.id_cargo
+    LEFT JOIN religiones r ON a.religion_id = r.id_religion
+    LEFT JOIN municipios md ON a.municipio_domicilio = md.id_municipio
+    LEFT JOIN municipios mr ON a.municipio_residencia = mr.id_municipio
+    LEFT JOIN municipios mt ON a.municipio_trabajo = mt.id_municipio
+    LEFT JOIN entidades_eps e ON a.id_eps = e.id_eps
+    LEFT JOIN entidades_arl ar ON a.id_arl = ar.id_arl
+    LEFT JOIN entidades_pension p ON a.id_pension = p.id_pension
+    LEFT JOIN entidades_cesantias ce ON a.id_cesantias = ce.id_cesantias
+    LEFT JOIN instituciones_educativas ie ON a.id_institucion = ie.id_institucion
+    WHERE a.cedula = ?
+  `;
+  const [afiliados] = await db.query(query, [cedula]);
+  
+  if (afiliados[0] && afiliados[0].foto_afiliado) {
+    afiliados[0].foto_afiliado = afiliados[0].foto_afiliado.toString('base64');
+  }
+  
+  return afiliados[0];
+};
+
+// ============================================
 // CREAR AFILIADO CON VALIDACIÓN DE DEPARTAMENTO
 // ============================================
 export const createAfiliado = async (data, departamento, rol) => {

@@ -188,9 +188,36 @@ export const updateCargo = async (id, data) => {
 };
 
 // ============================================
+// OBTENER CARGOS POR MUNICIPIO
+// ============================================
+export const getCargosByMunicipio = async (id_municipio) => {
+  const query = `
+    SELECT DISTINCT c.id_cargo, c.nombre_cargo
+    FROM cargos c
+    INNER JOIN salarios_municipios sm ON c.id_cargo = sm.id_cargo
+    WHERE sm.id_municipio = ?
+    ORDER BY c.nombre_cargo
+  `;
+  
+  const [cargos] = await db.query(query, [id_municipio]);
+  console.log(`🎯 Cargos disponibles para municipio ${id_municipio}: ${cargos.length}`);
+  return cargos;
+};
+
+// ============================================
 // ELIMINAR CARGO CON VALIDACIÓN
 // ============================================
 export const deleteCargo = async (id, departamento, rol) => {
+  // Verificar si hay salarios asociados a este cargo
+  const [salarios] = await db.query(
+    'SELECT COUNT(*) as count FROM salarios_municipios WHERE id_cargo = ?',
+    [id]
+  );
+
+  if (salarios[0].count > 0) {
+    throw new Error('No se puede eliminar el cargo porque tiene salarios asociados. Elimina esos salarios y vuelve a intentar.');
+  }
+
   // Verificar si hay afiliados usando este cargo
   let checkQuery = `
     SELECT COUNT(*) as count 

@@ -12,8 +12,7 @@
  */
 
 import axios from "axios";
-
-const API_URL = "http://localhost:4000/api";
+import { API_URL } from "../config/api.config.js";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -33,6 +32,15 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+const getErrorMessage = (error) => {
+  return (
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    'Error inesperado'
+  );
+};
+
 // Interceptor para manejar errores de autenticación
 api.interceptors.response.use(
   (response) => response,
@@ -44,7 +52,9 @@ api.interceptors.response.use(
       sessionStorage.removeItem('usuario');
       window.location.href = '/login';
     }
-    return Promise.reject(error);
+    const enriched = new Error(getErrorMessage(error));
+    enriched.original = error;
+    return Promise.reject(enriched);
   }
 );
 

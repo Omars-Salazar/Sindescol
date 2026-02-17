@@ -1,0 +1,95 @@
+{
+  // Configuración general
+  appId: "com.sindescol.app",
+  productName: "SINDESCOL",
+  artifactName: "${productName}-${version}-${arch}.${ext}",
+  
+  // Directorios
+  directories: {
+    buildResources: "frontend/public",
+    output: "dist",
+    buildResources: "assets"
+  },
+  
+  // Configuración de Windows
+  win: {
+    certificateFile: null, // Opcional: ruta al certificado de firma
+    certificatePassword: null,
+    signingHashAlgorithms: ["sha256"],
+    sign: null,
+    target: [
+      {
+        target: "nsis",
+        arch: ["x64"]
+      },
+      {
+        target: "portable",
+        arch: ["x64"]
+      }
+    ]
+  },
+  
+  // Configuración NSIS (instalador Windows)
+  nsis: {
+    oneClick: false,
+    allowToChangeInstallationDirectory: true,
+    createDesktopShortcut: true,
+    createStartMenuShortcut: true,
+    shortcutName: "SINDESCOL"
+  },
+  
+  // Configuración Portable (ejecutable sin instalador)
+  portable: {
+    artifactName: "${productName}-${version}-portable.${ext}"
+  },
+  
+  // Configuración de macOS (opcional)
+  mac: {
+    target: [
+      "dmg",
+      "zip"
+    ],
+    category: "public.app-category.business"
+  },
+  
+  // Configuración de Linux (opcional)
+  linux: {
+    target: [
+      "AppImage",
+      "deb"
+    ],
+    category: "Office"
+  },
+  
+  // Ficheros a incluir en el build
+  files: [
+    "desktop/**/*",
+    "frontend/dist/**/*",
+    "node_modules/**/*"
+  ],
+  
+  // Recursos extra (se copian a la carpeta resources/ en Windows)
+  extraResources: [
+    {
+      "from": "resources/backend.exe",
+      "to": "backend.exe"
+    },
+    {
+      "from": "resources/.env",
+      "to": ".env"
+    }
+  ],
+  
+  // Ficheros a excluir
+  extraMetadata: {
+    name: "sindescol"
+  },
+  
+  // Publish configuration para auto-updates
+  publish: {
+    provider: "github",
+    owner: "tu-usuario",
+    repo: "sindescol",
+    vPrefixedTagName: true
+  }
+}

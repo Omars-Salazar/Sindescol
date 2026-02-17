@@ -1,6 +1,8 @@
 /**
  * Wrapper de fetch que incluye automáticamente el token de autenticación
  */
+import { getApiBaseUrl } from '../config/api.config.js';
+
 export async function fetchWithAuth(url, options = {}) {
   // Obtener token de localStorage o sessionStorage
   const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -12,7 +14,8 @@ export async function fetchWithAuth(url, options = {}) {
   }
 
   // Construir URL completa si es relativa
-  const fullUrl = url.startsWith('http') ? url : `http://localhost:4000${url}`;
+  const apiBase = getApiBaseUrl();
+  const fullUrl = url.startsWith('http') ? url : `${apiBase}${url}`;
 
   // Agregar headers de autenticación
   const headers = {
@@ -35,6 +38,17 @@ export async function fetchWithAuth(url, options = {}) {
       sessionStorage.removeItem('usuario');
       window.location.href = '/login';
       throw new Error('Sesión expirada');
+    }
+
+    if (!response.ok) {
+      let message = response.statusText || 'Error de solicitud';
+      try {
+        const data = await response.clone().json();
+        message = data?.message || data?.error || message;
+      } catch (parseError) {
+        // Si no hay JSON, mantener el mensaje por defecto
+      }
+      throw new Error(message);
     }
 
     return response;
