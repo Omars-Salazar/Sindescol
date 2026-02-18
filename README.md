@@ -474,7 +474,7 @@ Copyright (c) 2025-2026 **[Omar Santiago Salazar]**
 
 ## 👨‍💻 Autor
 
-**[Tu Nombre Completo]**
+**[Omar Santiago Salazar]**
 - 📧 Email: [ossy2607@gmail.com]
 - 🐙 GitHub: [OmarSsalazar](https://github.com/OmarSsalazar)
 
