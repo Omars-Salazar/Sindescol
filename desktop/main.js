@@ -15,6 +15,7 @@ const path = require('path');
 const { spawn } = require('child_process');
 const http = require('http');
 const fs = require('fs');
+const { initAutoUpdater, handleAppClose } = require('./auto-updater');
 
 // Verificar si está en modo desarrollo
 // app.isPackaged es true cuando está empacado/instalado
@@ -309,10 +310,8 @@ app.on('ready', async () => {
     // Configurar menú
     setupMenu();
     
-    // Verificar actualizaciones
-    setTimeout(() => {
-      autoUpdater.checkForUpdatesAndNotify();
-    }, 3000);
+    // Inicializar sistema de actualización automática
+    initAutoUpdater(mainWindow);
 
   } catch (error) {
     console.error('[App] Error during startup:', error);
@@ -371,11 +370,23 @@ function waitForVite() {
  * Evento: cuando todas las ventanas se cierran
  */
 app.on('window-all-closed', () => {
-  // En macOS, las apps típicamente se mantienen activas hasta que el usuario salga explícitamente
+  // Cerrar servidor frontend si está corriendo
+  if (frontendServer) {
+    frontendServer.close();
+  }
+  // Cerrar backend si está corriendo
+  if (backendProcess) {
+    backendProcess.kill();
+  }
+
+  // Manejar actualización si está descargada
+  if (handleAppClose()) {
+    // La actualización se instalará automáticamente
+    return;
+  }
+
+  // Salir en Windows, pero no en macOS
   if (process.platform !== 'darwin') {
-    if (backendProcess) {
-      backendProcess.kill();
-    }
     app.quit();
   }
 });
@@ -390,24 +401,6 @@ app.on('activate', () => {
 });
 
 /**
- * Evento: cuando se cierran todas las ventanas
- */
-app.on('window-all-closed', () => {
-  // Cerrar servidor frontend si está corriendo
-  if (frontendServer) {
-    frontendServer.close();
-  }
-  // Cerrar backend si está corriendo
-  if (backendProcess) {
-    backendProcess.kill();
-  }
-  // Salir en Windows, pero no en macOS
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
-});
-
-/**
  * IPC: Escuchar eventos desde el frontend
  */
 ipcMain.on('app-version', (event) => {
@@ -418,16 +411,6 @@ ipcMain.on('restart-app', () => {
   autoUpdater.quitAndInstall();
 });
 
-/**
- * Auto-updater: Eventos
- */
-autoUpdater.on('update-available', () => {
-  mainWindow?.webContents.send('update-available');
-});
-
-autoUpdater.on('update-downloaded', () => {
-  mainWindow?.webContents.send('update-downloaded');
-});
 
 /**
  * Configurar menú de la aplicación

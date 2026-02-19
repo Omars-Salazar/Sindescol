@@ -114,3 +114,8 @@ pnpm-lock.yaml
 # Descomentar si no quieres subir estos archivos
 # TODO.md
 # VALORACION_PROYECTO.md
+
+# Ejecutables compilados
+*.exe
+resources/*.exe
+backend/*.exe
