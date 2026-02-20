@@ -26,6 +26,8 @@ build/
 logs/
 *.log
 *-debug.log*
+# Permitir logs/README.md pero ignorar CSVs
+backend/logs/*.csv
 
 # ===========================
 # EDITORES
@@ -49,6 +51,7 @@ logs/
 # DB / BACKUPS
 # ===========================
 *.sql
+!backend/database/*.sql
 *.sqlite
 *.db
 backups/
