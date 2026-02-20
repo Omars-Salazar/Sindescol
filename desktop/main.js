@@ -15,7 +15,7 @@ const path = require('path');
 const { spawn } = require('child_process');
 const http = require('http');
 const fs = require('fs');
-const { initAutoUpdater, handleAppClose } = require('./auto-updater');
+const { initAutoUpdater, handleAppClose, requestUpdateDownload, getUpdateHistory, getLastUpdateInfo } = require('./auto-updater');
 
 // Verificar si está en modo desarrollo
 // app.isPackaged es true cuando está empacado/instalado
@@ -407,8 +407,57 @@ ipcMain.on('app-version', (event) => {
   event.reply('app-version', { version: app.getVersion() });
 });
 
+ipcMain.handle('app-version', () => ({ version: app.getVersion() }));
+
+ipcMain.handle('download-update', () => {
+  requestUpdateDownload();
+  return { started: true };
+});
+
 ipcMain.on('restart-app', () => {
   autoUpdater.quitAndInstall();
+});
+
+ipcMain.handle('check-for-updates', async () => {
+  try {
+    const result = await autoUpdater.checkForUpdates();
+    return { 
+      updateAvailable: result?.updateInfo?.version !== app.getVersion(),
+      currentVersion: app.getVersion(),
+      updateVersion: result?.updateInfo?.version
+    };
+  } catch (error) {
+    console.error('[IPC] Check updates error:', error.message);
+    return { error: error.message };
+  }
+});
+
+ipcMain.handle('get-update-history', () => {
+  const history = getUpdateHistory();
+  return history;
+});
+
+ipcMain.handle('get-last-update-info', () => {
+  const updateInfo = getLastUpdateInfo();
+  return updateInfo || null;
+});
+
+ipcMain.on('minimize-window', () => {
+  if (mainWindow) mainWindow.minimize();
+});
+
+ipcMain.on('maximize-window', () => {
+  if (mainWindow) {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow.maximize();
+    }
+  }
+});
+
+ipcMain.on('close-window', () => {
+  if (mainWindow) mainWindow.close();
 });
 
 

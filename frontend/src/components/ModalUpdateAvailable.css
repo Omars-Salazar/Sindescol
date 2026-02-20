@@ -1,0 +1,373 @@
+/**
+ * SINDESCOL - Modal de Actualización 
+ * Estilos para ModalUpdateAvailable.jsx
+ */
+
+.modal-update-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-update-container {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 500px;
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header */
+.modal-update-header {
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  color: white;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+}
+
+.modal-update-icon {
+  font-size: 32px;
+  animation: bounce 0.6s ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.modal-update-title {
+  margin: 0;
+  flex: 1;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.modal-update-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.modal-update-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Content */
+.modal-update-content {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Version Info */
+.modal-update-version-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #f0f4f8;
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.modal-update-version-badge {
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.modal-update-version-meta {
+  flex: 1;
+}
+
+.modal-update-version-label {
+  margin: 0;
+  font-size: 14px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.modal-update-version-time {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Progress Section */
+.modal-update-progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-update-progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.modal-update-progress-percent {
+  background: #dcfce7;
+  color: #166534;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.modal-update-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.modal-update-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+/* Success Message */
+.modal-update-success-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #dcfce7;
+  border-left: 4px solid #10b981;
+  padding: 16px;
+  border-radius: 8px;
+  color: #065f46;
+}
+
+.modal-update-check-icon {
+  font-size: 20px;
+  min-width: 24px;
+}
+
+.modal-update-success-message p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Error Message */
+.modal-update-error-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fee2e2;
+  border-left: 4px solid #ef4444;
+  padding: 16px;
+  border-radius: 8px;
+  color: #7f1d1d;
+}
+
+.modal-update-error-icon {
+  font-size: 20px;
+  min-width: 24px;
+}
+
+.modal-update-error-message p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Info Box */
+.modal-update-info-box {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.modal-update-info-title {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.modal-update-info-list {
+  margin: 0;
+  padding: 0 0 0 20px;
+  font-size: 13px;
+  color: #1e3a8a;
+  line-height: 1.6;
+}
+
+.modal-update-info-list li {
+  margin-bottom: 4px;
+}
+
+/* Actions */
+.modal-update-actions {
+  display: flex;
+  gap: 12px;
+  padding: 0 28px 28px;
+}
+
+.modal-update-btn-primary {
+  flex: 1;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.modal-update-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(30, 64, 175, 0.3);
+}
+
+.modal-update-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.modal-update-btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.modal-update-btn-secondary {
+  flex: 1;
+  padding: 12px 20px;
+  background: #e5e7eb;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 44px;
+}
+
+.modal-update-btn-secondary:hover {
+  background: #d1d5db;
+  transform: translateY(-2px);
+}
+
+.modal-update-btn-secondary:active {
+  transform: translateY(0);
+}
+
+/* Icons en botones */
+.modal-update-btn-icon {
+  font-size: 16px;
+  display: inline-block;
+}
+
+/* Spinner */
+.modal-update-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .modal-update-container {
+    width: 95%;
+    margin: 16px;
+  }
+
+  .modal-update-content {
+    padding: 20px;
+  }
+
+  .modal-update-actions {
+    padding: 0 20px 20px;
+    flex-direction: column;
+  }
+
+  .modal-update-header {
+    padding: 20px;
+  }
+
+  .modal-update-title {
+    font-size: 18px;
+  }
+}

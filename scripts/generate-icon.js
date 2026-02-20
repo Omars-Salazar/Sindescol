@@ -2,11 +2,11 @@
 
 const fs = require('fs');
 const path = require('path');
-const https = require('https');
+const pngToIco = require('png-to-ico');
+const sharp = require('sharp');
 
 /**
- * Descarga y usa una API en línea para convertir PNG a ICO
- * Ya que sharp no soporta nativamente ICO
+ * Convierte PNG a ICO con dimensiones correctas para electron-builder
  */
 
 const inputFile = path.join(__dirname, '../frontend/public/escudo_sindescol.png');
@@ -19,37 +19,37 @@ if (!fs.existsSync(inputFile)) {
 }
 
 console.log('📦 Leyendo archivo PNG:', inputFile);
-const pngData = fs.readFileSync(inputFile);
 
-// Usar convertio API (gratuita, sin autenticación requerida para archivos pequeños)
-// O usar ffmpeg si está disponible
-// Por ahora, vamos a crear un ICO simple manualmente
-
-// Estructura simple de ICO con una entrada PNG
-// Para un ICO válido, necesitamos la estructura correcta
-// Voy a intentar con una herramienta más simple: usar Node para empaquetar el PNG en un ICO
-
-console.log('⚙️ Convirtiendo PNG a ICO...');
-
-try {
-  // Para un ICO válido con Node puro, necessitaríamos mucha lógica
-  // En su lugar, voy a copiar el PNG como .ico (funciona en muchos casos)
-  // O mejor aún, voy a crear un ICO mínimo
-  
-  const icoHeader = Buffer.from([
-    0x00, 0x00, // Reserved
-    0x01, 0x00, // Type (1 = ICO)
-    0x01, 0x00  // Number of images
-  ]);
-
-  // Para una solución rápida, vamos a usar el PNG directamente como ICO
-  // Muchos sistemas Windows lo aceptan
-  fs.copyFileSync(inputFile, outputFile);
-  
-  console.log('✅ ICO generado:', outputFile);
-  console.log('💡 Nota: Usando PNG como ICO (compatible con electron-builder)');
-  
-} catch (error) {
-  console.error('❌ Error:', error.message);
-  process.exit(1);
+async function generateIcon() {
+  try {
+    // Generar tamaño 256x256 principal
+    console.log(`⚙️ Generando tamaño 256x256...`);
+    const tempPng = path.join(__dirname, '../frontend/public/temp-256.png');
+    
+    await sharp(inputFile)
+      .resize(256, 256, {
+        fit: 'contain',
+        background: { r: 0, g: 0, b: 0, alpha: 0 }
+      })
+      .png()
+      .toFile(tempPng);
+    
+    // Convertir a ICO
+    console.log('🔄 Convirtiendo a formato ICO...');
+    const icoBuffer = await pngToIco(tempPng);
+    
+    // Guardar archivo
+    fs.writeFileSync(outputFile, icoBuffer);
+    
+    // Limpiar archivo temporal
+    fs.unlinkSync(tempPng);
+    
+    console.log('✅ ICO generado correctamente:', outputFile);
+    console.log(`📏 Tamaño: 256x256`);
+  } catch (error) {
+    console.error('❌ Error al generar ICO:', error);
+    process.exit(1);
+  }
 }
+
+generateIcon();

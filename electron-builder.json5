@@ -7,17 +7,12 @@
   // Directorios
   directories: {
     buildResources: "frontend/public",
-    output: "dist",
-    buildResources: "assets"
+    output: "dist"
   },
   
   // Configuración de Windows
   win: {
-    certificateFile: null, // Opcional: ruta al certificado de firma
-    certificatePassword: null,
-    signingHashAlgorithms: ["sha256"],
-    sign: null,
-    icon: "frontend/public/escudo_sindescol.png",
+    icon: "frontend/public/icon.png",
     target: [
       {
         target: "nsis",
@@ -30,19 +25,21 @@
     ]
   },
   
-  // Configuración NSIS (instalador Windows)
+  // Configuración NSIS (instalador Windows) con nombre limpio
   nsis: {
     oneClick: false,
     allowToChangeInstallationDirectory: true,
     createDesktopShortcut: true,
     createStartMenuShortcut: true,
-    shortcutName: "SINDESCOL"
+    shortcutName: "SINDESCOL",
+    artifactName: "${productName}-${version}-${arch}.${ext}"
   },
   
   // Configuración Portable (ejecutable sin instalador)
   portable: {
     artifactName: "${productName}-${version}-portable.${ext}"
   },
+  
   
   // Configuración de macOS (opcional)
   mac: {
@@ -66,7 +63,8 @@
   files: [
     "desktop/**/*",
     "frontend/dist/**/*",
-    "node_modules/**/*"
+    "node_modules/**/*",
+    "!node_modules/**/*.map"
   ],
   
   // Recursos extra (se copian a la carpeta resources/ en Windows)

@@ -1,6 +1,6 @@
 {
   "name": "sindescol",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "Sistema integral de gestión para sindicatos colombianos",
   "main": "desktop/main.js",
   "author": {
@@ -44,10 +44,11 @@
   "devDependencies": {
     "concurrently": "^8.2.2",
     "electron": "^31.7.7",
-    "electron-builder": "^25.1.8",
+    "electron-builder": "^26.8.1",
     "esbuild": "^0.27.3",
     "ico": "^0.3.3",
     "pkg": "^5.8.1",
+    "png-to-ico": "^3.0.1",
     "sharp": "^0.34.5"
   },
   "build": {
@@ -59,6 +60,7 @@
       "repo": "Sindescol"
     },
     "win": {
+      "icon": "frontend/public/icon.png",
       "target": [
         {
           "target": "nsis",
@@ -66,15 +68,15 @@
             "x64"
           ]
         }
-      ],
-      "certificateFile": null
+      ]
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "SINDESCOL"
+      "shortcutName": "SINDESCOL",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "files": [
       "desktop/**",
@@ -86,6 +88,10 @@
       {
         "from": "resources/backend.exe",
         "to": "backend.exe"
+      },
+      {
+        "from": "resources/.env",
+        "to": ".env"
       }
     ]
   }
