@@ -1,0 +1,15 @@
+# Railway Configuration for Backend Service
+# Ensures Railway correctly detects this as a Node.js backend API
+
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "npm start"
+restartPolicyType = "on-failure"
+restartPolicyMaxRetries = 10
+
+[healthcheck]
+path = "/api/health"
+timeout = 100
+interval = 30
