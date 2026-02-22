@@ -20,6 +20,10 @@ dotenv.config();
 // Railway Hobby: ~500MB RAM, max 20-30 conexiones MySQL
 const isProduction = process.env.NODE_ENV === 'production';
 const isRailway = !!process.env.DATABASE_URL;
+const sslRejectUnauthorizedEnv = process.env.DB_SSL_REJECT_UNAUTHORIZED;
+const sslRejectUnauthorized = sslRejectUnauthorizedEnv
+  ? sslRejectUnauthorizedEnv === 'true'
+  : isProduction && isRailway;
 
 // Configuración adaptativa según el ambiente
 const poolConfig = {
@@ -51,7 +55,7 @@ if (process.env.DATABASE_URL) {
     database: url.pathname.slice(1), // Remove leading /
     ...poolConfig,
     ssl: {
-      rejectUnauthorized: false
+      rejectUnauthorized: sslRejectUnauthorized
     }
   });
 } else {
@@ -64,7 +68,7 @@ if (process.env.DATABASE_URL) {
     database: process.env.DB_NAME,
     ...poolConfig,
     ssl: process.env.DB_SSL === 'true' ? {
-      rejectUnauthorized: false
+      rejectUnauthorized: sslRejectUnauthorized
     } : undefined
   });
 }

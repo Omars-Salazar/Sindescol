@@ -9,6 +9,7 @@ import db from '../config/db.js';
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const isProduction = process.env.NODE_ENV === 'production';
 
     // Validar datos
     if (!email || !password) {
@@ -18,7 +19,11 @@ export const login = async (req, res) => {
       });
     }
 
-    console.log('🔑 Intento de login:', email);
+    if (!isProduction) {
+      console.log('🔑 Intento de login:', email);
+    } else {
+      console.log('🔑 Intento de login');
+    }
 
     // Buscar usuario en la base de datos
     let usuarios;
@@ -37,7 +42,11 @@ export const login = async (req, res) => {
     }
 
     if (usuarios.length === 0) {
-      console.log('❌ Usuario no encontrado:', email);
+      if (!isProduction) {
+        console.log('❌ Usuario no encontrado:', email);
+      } else {
+        console.log('❌ Usuario no encontrado');
+      }
       return res.status(401).json({ 
         success: false,
         message: 'Email o contraseña incorrectos' 
@@ -47,7 +56,11 @@ export const login = async (req, res) => {
     const usuario = usuarios[0];
 
     if (!usuario.activo) {
-      console.log('❌ Usuario inactivo:', email);
+      if (!isProduction) {
+        console.log('❌ Usuario inactivo:', email);
+      } else {
+        console.log('❌ Usuario inactivo');
+      }
       return res.status(403).json({
         success: false,
         message: 'Usuario inactivo. Contacta a presidencia.'
@@ -58,10 +71,22 @@ export const login = async (req, res) => {
     const passwordValido = await bcrypt.compare(password, usuario.password_hash);
 
     if (!passwordValido) {
-      console.log('❌ Contraseña incorrecta para:', email);
+      if (!isProduction) {
+        console.log('❌ Contraseña incorrecta para:', email);
+      } else {
+        console.log('❌ Contraseña incorrecta');
+      }
       return res.status(401).json({ 
         success: false,
         message: 'Email o contraseña incorrectos' 
+      });
+    }
+
+    if (!process.env.JWT_SECRET) {
+      console.error('❌ JWT_SECRET no configurado en el servidor');
+      return res.status(500).json({
+        success: false,
+        message: 'Configuración de seguridad faltante. Contacta al administrador.'
       });
     }
 

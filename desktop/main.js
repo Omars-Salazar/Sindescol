@@ -22,12 +22,32 @@ const { initAutoUpdater, handleAppClose, requestUpdateDownload, getUpdateHistory
 // Será false cuando ejecutamos desde npm start en desarrollo
 let isDev = !app.isPackaged;
 
+// Control de logs por nivel (debug, info, warn, error)
+const logLevel = process.env.LOG_LEVEL || (isDev ? 'debug' : 'info');
+const LOG_LEVELS = { error: 0, warn: 1, info: 2, debug: 3 };
+const currentLevel = LOG_LEVELS[logLevel] ?? LOG_LEVELS.info;
+const baseConsole = {
+  log: console.log.bind(console),
+  info: console.info.bind(console),
+  warn: console.warn.bind(console),
+  error: console.error.bind(console),
+  debug: console.debug ? console.debug.bind(console) : console.log.bind(console)
+};
+
+const shouldLog = (level) => LOG_LEVELS[level] <= currentLevel;
+
+console.log = (...args) => { if (shouldLog('info')) baseConsole.log(...args); };
+console.info = (...args) => { if (shouldLog('info')) baseConsole.info(...args); };
+console.debug = (...args) => { if (shouldLog('debug')) baseConsole.debug(...args); };
+console.warn = (...args) => { if (shouldLog('warn')) baseConsole.warn(...args); };
+console.error = (...args) => { if (shouldLog('error')) baseConsole.error(...args); };
+
 console.log('[Main] Process ENV NODE_ENV:', JSON.stringify(process.env.NODE_ENV));
 console.log('[Main] app.isPackaged:', app.isPackaged);
 console.log('[Main] isDev:', isDev);
 
 // Configurar logging
-log.transports.file.level = 'debug';
+log.transports.file.level = logLevel;
 autoUpdater.logger = log;
 
 let mainWindow;
@@ -49,7 +69,8 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
-      enableRemoteModule: false
+      enableRemoteModule: false,
+      sandbox: true
     },
     icon: path.join(__dirname, '../frontend/public/escudo_sindescol.png')
   });

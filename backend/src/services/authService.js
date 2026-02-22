@@ -7,6 +7,11 @@ import { getErrorMessage } from '../utils/errorMessages.js';
 export const login = async (email, password) => {
   try {
     console.log('🔍 Intentando login con email:', email);
+
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET no configurado. Contacta al administrador.');
+    }
     
     const [usuarios] = await pool.query(
       'SELECT * FROM usuarios WHERE email = ? AND activo = TRUE',
@@ -39,7 +44,7 @@ export const login = async (email, password) => {
         departamento: usuario.departamento,
         rol: usuario.rol
       },
-      process.env.JWT_SECRET || 'sindescol-super-secreto-2025-cambiar-en-produccion',
+      jwtSecret,
       { expiresIn: '8h' }
     );
 

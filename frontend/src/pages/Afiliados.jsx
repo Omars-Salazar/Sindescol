@@ -4,6 +4,9 @@ import { ModalVerAfiliado } from "../components/afiliados/ModalVerAfiliado";
 import { ModalEditarAfiliado } from "../components/afiliados/ModalEditarAfiliado";
 import { ModalEliminarAfiliado } from "../components/afiliados/ModalEliminarAfiliado";
 import { fetchWithAuth } from "../utils/fetchWithAuth";
+import Toast from "../components/Toast";
+import { useToast } from "../hooks/useToast";
+import { MESSAGES } from "../utils/toastMessages";
 import "./Afiliados.css";
 
 function Afiliados() {
@@ -14,7 +17,7 @@ function Afiliados() {
   const [modalEliminarOpen, setModalEliminarOpen] = useState(false);
   const [afiliadoSeleccionado, setAfiliadoSeleccionado] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
+  const { toast, showSuccess, showError, showWarning, hideToast } = useToast();
 
   // OPTIMIZACIÓN: Estados de paginación y búsqueda
   const [paginaActual, setPaginaActual] = useState(1);
@@ -77,12 +80,12 @@ function Afiliados() {
         setAfiliados(data.data || []);
       } else {
         setAfiliados([]);
-        showAlert(data.message || data.error || "No se pudieron cargar los afiliados", "danger");
+        showError(data.message || data.error || MESSAGES.LOAD_ERROR);
       }
     } catch (error) {
       console.error("Error completo:", error);
       setAfiliados([]);
-      showAlert(error.message || "Error al cargar afiliados", "danger");
+      showError(error.message || MESSAGES.LOAD_ERROR);
     } finally {
       setLoading(false);
     }
@@ -102,14 +105,14 @@ function Afiliados() {
         console.log("✅ Afiliado creado exitosamente");
         setModalCrearOpen(false);
         cargarAfiliados();
-        showAlert("Afiliado creado exitosamente", "success");
+        showSuccess(MESSAGES.AFFILIATE_CREATED);
       } else {
         console.error("Error del servidor:", data.error || data.message);
-        showAlert(data.message || data.error || "Error al crear afiliado", "danger");
+        showError(data.message || data.error || MESSAGES.SAVE_ERROR);
       }
     } catch (error) {
       console.error("Error creando afiliado:", error);
-      showAlert(error.message || "Error al crear afiliado", "danger");
+      showError(error.message || MESSAGES.SAVE_ERROR);
     }
   };
 
@@ -144,21 +147,21 @@ function Afiliados() {
         console.log("✅ Afiliado editado exitosamente");
         setModalEditarOpen(false);
         cargarAfiliados();
-        showAlert("Afiliado actualizado exitosamente", "success");
+        showSuccess(MESSAGES.AFFILIATE_UPDATED);
       } else {
         console.error("Error del servidor:", data.error || data.message);
-        showAlert(data.message || data.error || "Error al editar afiliado", "danger");
+        showError(data.message || data.error || MESSAGES.SAVE_ERROR);
       }
     } catch (error) {
       console.error("Error editando afiliado:", error);
-      showAlert(error.message || "Error al editar afiliado", "danger");
+      showError(error.message || MESSAGES.SAVE_ERROR);
     }
   };
 
   const handleEliminarAfiliado = async () => {
     try {
       if (!afiliadoSeleccionado) {
-        showAlert("No hay afiliado seleccionado", "warning");
+        showWarning("⚠️ No hay afiliado seleccionado");
         return;
       }
 
@@ -174,14 +177,14 @@ function Afiliados() {
         setModalEliminarOpen(false);
         setAfiliadoSeleccionado(null);
         cargarAfiliados();
-        showAlert("Afiliado eliminado exitosamente", "success");
+        showSuccess(MESSAGES.AFFILIATE_DELETED);
       } else {
         console.error("Error del servidor:", data.error || data.message);
-        showAlert(data.message || data.error || "Error al eliminar afiliado", "danger");
+        showError(data.message || data.error || MESSAGES.DELETE_ERROR);
       }
     } catch (error) {
       console.error("Error eliminando afiliado:", error);
-      showAlert(error.message || "Error al eliminar afiliado", "danger");
+      showError(error.message || MESSAGES.DELETE_ERROR);
     }
   };
 
@@ -263,21 +266,23 @@ function Afiliados() {
     return numeros;
   };
 
-  const showAlert = (message, type) => {
-    setAlert({ message, type });
-    setTimeout(() => setAlert(null), 4000);
-  };
-
   return (
     <div className="afiliados-container">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          duration={toast.duration}
+        />
+      )}
+      
       <div className="afiliados-header">
         <h1>Gestión de Afiliados</h1>
         <button className="btn-crear" onClick={() => setModalCrearOpen(true)}>
           + Nuevo Afiliado
         </button>
       </div>
-
-      {alert && <div className={`alert alert-${alert.type}`}>{alert.message}</div>}
 
       {/* OPTIMIZACIÓN: Barra de búsqueda */}
       <div style={{ 

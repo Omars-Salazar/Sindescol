@@ -14,6 +14,8 @@
 import jwt from 'jsonwebtoken';
 import db from '../config/db.js';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 /**
  * Middleware para autenticar el token JWT
  * Extrae: id_usuario, correo, rol, departamento
@@ -61,11 +63,15 @@ export const authenticateToken = async (req, res, next) => {
       departamento: usuarios[0].departamento
     };
 
-    console.log('🔐 Usuario autenticado:', {
-      email: req.user.email,
-      rol: req.user.rol,
-      departamento: req.user.departamento || 'TODOS (Presidencia Nacional)'
-    });
+    if (!isProduction) {
+      console.log('🔐 Usuario autenticado:', {
+        email: req.user.email,
+        rol: req.user.rol,
+        departamento: req.user.departamento || 'TODOS (Presidencia Nacional)'
+      });
+    } else {
+      console.log('🔐 Usuario autenticado');
+    }
 
     next();
   } catch (error) {

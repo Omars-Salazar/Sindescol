@@ -1,6 +1,6 @@
 {
   "name": "sindescol-frontend",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "Frontend React para sistema de gestión sindical SINDESCOL - Colombia",
   "private": true,
   "type": "module",

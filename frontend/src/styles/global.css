@@ -317,58 +317,121 @@ nav a:hover img {
   gap: 0.5rem;
 }
 
-/* Alert */
+/* Alert - Mejorado para v1.0.5 */
 .alert {
   padding: 1rem 1.25rem;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 1rem;
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  font-weight: 600;
-  line-height: 1.4;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  font-weight: 500;
+  line-height: 1.5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border: 1px solid transparent;
+  animation: alert-slide-in 0.3s ease-out;
+}
+
+@keyframes alert-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .alert::before {
   content: "ℹ️";
-  font-size: 1.1rem;
-  line-height: 1.2;
-  margin-top: 1px;
+  font-size: 1.2rem;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .alert-success {
-  background: #C8E6C9;
-  color: #1B5E20;
-  border-left: 4px solid var(--success);
-  border-color: rgba(76, 175, 80, 0.25);
+  background: linear-gradient(135deg, #d4f4dd 0%, #c8e6d0 100%);
+  color: #1b5e20;
+  border-left: 4px solid #4caf50;
+  border-color: rgba(76, 175, 80, 0.2);
 }
 
 .alert-success::before {
-  content: "✅";
+  content: "✓";
+  background: #4caf50;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
 }
 
 .alert-danger {
-  background: #FFCDD2;
-  color: #B71C1C;
-  border-left: 4px solid var(--primary-red);
-  border-color: rgba(211, 47, 47, 0.25);
+  background: linear-gradient(135deg, #ffe5e5 0%, #ffd6d6 100%);
+  color: #b71c1c;
+  border-left: 4px solid #f44336;
+  border-color: rgba(244, 67, 54, 0.2);
 }
 
 .alert-danger::before {
-  content: "⚠️";
+  content: "✕";
+  background: #f44336;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
 }
 
 .alert-warning {
-  background: #FFF9C4;
-  color: #F57F17;
-  border-left: 4px solid var(--primary-yellow);
-  border-color: rgba(255, 193, 7, 0.25);
+  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+  color: #e65100;
+  border-left: 4px solid #ff9800;
+  border-color: rgba(255, 152, 0, 0.2);
 }
 
 .alert-warning::before {
-  content: "⚠️";
+  content: "⚠";
+  background: #ff9800;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.alert-info {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  color: #0d47a1;
+  border-left: 4px solid #2196f3;
+  border-color: rgba(33, 150, 243, 0.2);
+}
+
+.alert-info::before {
+  content: "ⓘ";
+  background: #2196f3;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
 }
 
 /* Loading & Empty States */

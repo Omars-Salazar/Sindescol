@@ -4,6 +4,13 @@
 .env
 .env.*
 *.env
+.env.local
+backend/.env.local
+backend/.env
+resources/.env
+.env.development
+.env.production
+.env.staging
 
 # ===========================
 # DEPENDENCIAS
@@ -77,3 +84,15 @@ $RECYCLE.BIN/
 *.exe
 resources/*.exe
 backend/*.exe
+
+# ===========================
+# CERTS / KEYS
+# ===========================
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+*.p7b
+*.jks
+*.keystore

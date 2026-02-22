@@ -170,6 +170,84 @@ ANALYZE TABLE rectores;
 ANALYZE TABLE mensajes_dia;
 
 -- ============================================================================
+-- VERIFICACIÓN DE ÍNDICES CREADOS
+-- ============================================================================
+
+-- Verificar índices en tabla afiliados (debe tener 8+ índices)
+SELECT 
+    'afiliados' AS tabla,
+    INDEX_NAME AS indice,
+    COLUMN_NAME AS columna,
+    SEQ_IN_INDEX AS posicion,
+    NON_UNIQUE AS no_unico
+FROM information_schema.STATISTICS 
+WHERE TABLE_SCHEMA = 'railway' AND TABLE_NAME = 'afiliados'
+ORDER BY INDEX_NAME, SEQ_IN_INDEX;
+
+-- Verificar índices en tabla cuotas (debe tener 3+ índices)
+SELECT 
+    'cuotas' AS tabla,
+    INDEX_NAME AS indice,
+    COLUMN_NAME AS columna,
+    SEQ_IN_INDEX AS posicion
+FROM information_schema.STATISTICS 
+WHERE TABLE_SCHEMA = 'railway' AND TABLE_NAME = 'cuotas'
+ORDER BY INDEX_NAME, SEQ_IN_INDEX;
+
+-- Verificar índices en tabla usuarios (debe tener 5+ índices)
+SELECT 
+    'usuarios' AS tabla,
+    INDEX_NAME AS indice,
+    COLUMN_NAME AS columna,
+    SEQ_IN_INDEX AS posicion
+FROM information_schema.STATISTICS 
+WHERE TABLE_SCHEMA = 'railway' AND TABLE_NAME = 'usuarios'
+ORDER BY INDEX_NAME, SEQ_IN_INDEX;
+
+-- Verificar índices en tabla municipios (debe tener 2+ índices)
+SELECT 
+    'municipios' AS tabla,
+    INDEX_NAME AS indice,
+    COLUMN_NAME AS columna
+FROM information_schema.STATISTICS 
+WHERE TABLE_SCHEMA = 'railway' AND TABLE_NAME = 'municipios'
+ORDER BY INDEX_NAME;
+
+-- Verificar índices en tabla salarios_municipios (debe tener 3+ índices)
+SELECT 
+    'salarios_municipios' AS tabla,
+    INDEX_NAME AS indice,
+    COLUMN_NAME AS columna
+FROM information_schema.STATISTICS 
+WHERE TABLE_SCHEMA = 'railway' AND TABLE_NAME = 'salarios_municipios'
+ORDER BY INDEX_NAME;
+
+-- ============================================================================
+-- RESUMEN ESTADÍSTICO DE ÍNDICES
+-- ============================================================================
+
+-- Contar total de índices por tabla
+SELECT 
+    TABLE_NAME AS tabla,
+    COUNT(DISTINCT INDEX_NAME) AS total_indices,
+    SUM(CASE WHEN NON_UNIQUE = 0 THEN 1 ELSE 0 END) AS indices_unicos,
+    SUM(CASE WHEN NON_UNIQUE = 1 THEN 1 ELSE 0 END) AS indices_no_unicos
+FROM information_schema.STATISTICS 
+WHERE TABLE_SCHEMA = 'railway'
+GROUP BY TABLE_NAME
+ORDER BY total_indices DESC;
+
+-- Mostrar tamaño de índices vs datos
+SELECT 
+    TABLE_NAME AS tabla,
+    ROUND((DATA_LENGTH) / 1024 / 1024, 2) AS datos_MB,
+    ROUND((INDEX_LENGTH) / 1024 / 1024, 2) AS indices_MB,
+    ROUND((INDEX_LENGTH / DATA_LENGTH) * 100, 2) AS porcentaje_indices
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = 'railway'
+ORDER BY DATA_LENGTH DESC;
+
+-- ============================================================================
 -- NOTAS IMPORTANTES:
 -- ============================================================================
 -- 1. Ejecutar este script después de insertar los datos iniciales

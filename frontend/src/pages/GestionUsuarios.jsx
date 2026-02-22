@@ -1,6 +1,9 @@
 // frontend/src/pages/GestionUsuarios.jsx
 import { useState, useEffect } from "react";
 import { fetchWithAuth } from "../utils/fetchWithAuth";
+import Toast from "../components/Toast";
+import { useToast } from "../hooks/useToast";
+import { MESSAGES } from "../utils/toastMessages";
 import "./GestionUsuarios.css";
 
 export default function GestionUsuarios() {
@@ -8,7 +11,7 @@ export default function GestionUsuarios() {
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [alert, setAlert] = useState(null);
+  const { toast, showSuccess, showError, showWarning, hideToast } = useToast();
   const [usuarioActual, setUsuarioActual] = useState(null);
   const [departamentos, setDepartamentos] = useState([]);
   const [filtros, setFiltros] = useState({ departamento: 'todos', rol: 'todos' });
@@ -55,7 +58,7 @@ export default function GestionUsuarios() {
       }
     } catch (error) {
       console.error('❌ Error cargando usuarios:', error);
-      showAlert("Error al cargar usuarios", "danger");
+      showError(MESSAGES.LOAD_ERROR);
     } finally {
       setLoading(false);
     }
@@ -94,7 +97,7 @@ export default function GestionUsuarios() {
     
     // Validación adicional del celular
     if (formData.celular && formData.celular.length !== 10) {
-      showAlert("El número de celular debe tener 10 dígitos", "danger");
+      showWarning(MESSAGES.INVALID_PHONE);
       return;
     }
     
@@ -116,14 +119,14 @@ export default function GestionUsuarios() {
       const data = await response.json();
       
       if (data.success) {
-        showAlert(editingId ? "Usuario actualizado" : "Usuario creado", "success");
+        showSuccess(editingId ? MESSAGES.USER_UPDATED : MESSAGES.USER_CREATED);
         resetForm();
         cargarUsuarios();
       } else {
-        showAlert(data.error || "Error al guardar", "danger");
+        showError(data.error || MESSAGES.SAVE_ERROR);
       }
     } catch (error) {
-      showAlert(error.message || "Error al guardar", "danger");
+      showError(error.message || MESSAGES.SAVE_ERROR);
     }
   };
 
@@ -141,7 +144,7 @@ export default function GestionUsuarios() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("¿Eliminar este usuario?")) {
+    if (!window.confirm("¿Estás seguro de eliminar este usuario? Esta acción no se puede deshacer.")) {
       return;
     }
     
@@ -153,13 +156,13 @@ export default function GestionUsuarios() {
       const data = await response.json();
       
       if (data.success) {
-        showAlert("Usuario eliminado", "success");
+        showSuccess(MESSAGES.USER_DELETED);
         cargarUsuarios();
       } else {
-        showAlert(data.error || "Error al eliminar", "danger");
+        showError(data.error || MESSAGES.DELETE_ERROR);
       }
     } catch (error) {
-      showAlert(error.message || "Error al eliminar", "danger");
+      showError(error.message || MESSAGES.DELETE_ERROR);
     }
   };
 
@@ -172,13 +175,13 @@ export default function GestionUsuarios() {
       const data = await response.json();
       
       if (data.success) {
-        showAlert("Estado actualizado", "success");
+        showSuccess(MESSAGES.USER_STATUS_CHANGED);
         cargarUsuarios();
       } else {
-        showAlert(data.error || "Error al actualizar", "danger");
+        showError(data.error || MESSAGES.SAVE_ERROR);
       }
     } catch (error) {
-      showAlert("Error al actualizar", "danger");
+      showError(MESSAGES.SAVE_ERROR);
     }
   };
 
@@ -202,11 +205,6 @@ export default function GestionUsuarios() {
 
   const handleCancelar = () => {
     resetForm();
-  };
-
-  const showAlert = (message, type) => {
-    setAlert({ message, type });
-    setTimeout(() => setAlert(null), 3000);
   };
 
   const formatCelular = (celular) => {
@@ -270,12 +268,19 @@ export default function GestionUsuarios() {
         <p>Administra los accesos al sistema</p>
       </div>
 
-      {alert && <div className={`alert alert-${alert.type}`}>{alert.message}</div>}
-
-      <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
-        {showForm ? "✕ Cancelar" : "➕ Nuevo Usuario"}
-      </button>
-
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          duration={toast.duration}
+        />
+      )}
+      
+      <div className="page-header">
+        <h1>👥 Gestión de Usuarios</h1>
+        <p>Administra los accesos al sistema de forma segura</p>
+      </div>
       {showForm && (
         <div className="card gestion-usuarios-form">
           <h3>{editingId ? "Editar Usuario" : "Crear Nuevo Usuario"}</h3>
@@ -398,10 +403,10 @@ export default function GestionUsuarios() {
       )}
 
       {loading ? (
-        <div className="loading">Cargando usuarios...</div>
+        <div className="loading">⏳ Cargando usuarios...</div>
       ) : usuarios.length === 0 ? (
         <div className="empty-state">
-          <p>No hay usuarios para gestionar</p>
+          <p>📋 No hay usuarios registrados</p>
           <button className="btn btn-primary" onClick={() => setShowForm(true)}>
             Crear el primer usuario
           </button>

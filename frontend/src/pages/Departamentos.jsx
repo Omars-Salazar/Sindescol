@@ -3,6 +3,9 @@ import { ModalCrearDepartamento } from "../components/departamentos/ModalCrearDe
 import { ModalCrearMunicipio } from "../components/departamentos/ModalCrearMunicipio";
 import { ModalEditarMunicipio } from "../components/departamentos/ModalEditarMunicipio";
 import { fetchWithAuth } from "../utils/fetchWithAuth";
+import Toast from "../components/Toast";
+import { useToast } from "../hooks/useToast";
+import { MESSAGES } from "../utils/toastMessages";
 import "./Departamentos.css";
 
 export default function Departamentos() {
@@ -10,7 +13,7 @@ export default function Departamentos() {
   const [departamentos, setDepartamentos] = useState([]);
   const [municipiosPorDepartamento, setMunicipiosPorDepartamento] = useState({});
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
+  const { toast, showSuccess, showError, showWarning, hideToast } = useToast();
   
   // Determinar si el usuario puede editar
   const puedeEditar = usuarioActual?.rol !== 'usuario';
@@ -65,7 +68,7 @@ export default function Departamentos() {
       }
     } catch (error) {
       console.error("Error cargando departamentos:", error);
-      showAlert("Error al cargar departamentos", "danger");
+      showError(MESSAGES.LOAD_ERROR);
     } finally {
       setLoading(false);
     }
@@ -119,17 +122,17 @@ export default function Departamentos() {
       const data = await response.json();
 
       if (data.success) {
-        showAlert("Departamento y municipios creados exitosamente", "success");
+        showSuccess(MESSAGES.DEPARTMENT_CREATED);
         setModalDepartamentoOpen(false);
         cargarDepartamentos();
         setMunicipiosPorDepartamento({});
         setDepartamentoExpandido(null);
       } else {
-        showAlert(data.error || "Error al crear departamento", "danger");
+        showError(data.error || MESSAGES.SAVE_ERROR);
       }
     } catch (error) {
       console.error("Error:", error);
-      showAlert("Error al crear departamento", "danger");
+      showError(MESSAGES.SAVE_ERROR);
     }
   };
 
@@ -144,7 +147,7 @@ export default function Departamentos() {
       const data = await response.json();
 
       if (data.success) {
-        showAlert("Municipio creado exitosamente", "success");
+        showSuccess(MESSAGES.MUNICIPALITY_CREATED);
         setModalMunicipioOpen(false);
         cargarDepartamentos();
         setMunicipiosPorDepartamento(prev => {
@@ -153,11 +156,11 @@ export default function Departamentos() {
           return nuevo;
         });
       } else {
-        showAlert(data.error || "Error al crear municipio", "danger");
+        showError(data.error || MESSAGES.SAVE_ERROR);
       }
     } catch (error) {
       console.error("Error:", error);
-      showAlert("Error al crear municipio", "danger");
+      showError(MESSAGES.SAVE_ERROR);
     }
   };
 
@@ -172,17 +175,17 @@ export default function Departamentos() {
       const data = await response.json();
 
       if (data.success) {
-        showAlert("Municipio actualizado exitosamente", "success");
+        showSuccess(MESSAGES.MUNICIPALITY_UPDATED);
         setModalEditarOpen(false);
         setMunicipioEditar(null);
         cargarDepartamentos();
         setMunicipiosPorDepartamento({});
       } else {
-        showAlert(data.error || "Error al actualizar municipio", "danger");
+        showError(data.error || MESSAGES.SAVE_ERROR);
       }
     } catch (error) {
       console.error("Error:", error);
-      showAlert("Error al actualizar municipio", "danger");
+      showError(MESSAGES.SAVE_ERROR);
     }
   };
 
@@ -199,15 +202,15 @@ export default function Departamentos() {
       const data = await response.json();
 
       if (data.success) {
-        showAlert("Municipio eliminado exitosamente", "success");
+        showSuccess(MESSAGES.MUNICIPALITY_DELETED);
         cargarDepartamentos();
         setMunicipiosPorDepartamento({});
       } else {
-        showAlert(data.error || "Error al eliminar municipio", "danger");
+        showError(data.error || MESSAGES.DELETE_ERROR);
       }
     } catch (error) {
       console.error("Error:", error);
-      showAlert("Error al eliminar municipio", "danger");
+      showError(MESSAGES.DELETE_ERROR);
     }
   };
 
@@ -216,19 +219,21 @@ export default function Departamentos() {
     setModalEditarOpen(true);
   };
 
-  const showAlert = (message, type) => {
-    setAlert({ message, type });
-    setTimeout(() => setAlert(null), 3000);
-  };
-
   return (
     <div className="container">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+          duration={toast.duration}
+        />
+      )}
+      
       <div className="page-header">
         <h1>🗺️ Gestión de Departamentos y Municipios</h1>
-        <p>Administra los departamentos y sus municipios</p>
+        <p>Administra los departamentos y sus municipios de forma eficiente</p>
       </div>
-
-      {alert && <div className={`alert alert-${alert.type}`}>{alert.message}</div>}
 
       <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem" }}>
         {usuarioActual?.rol === 'presidencia_nacional' && puedeEditar && (

@@ -6,6 +6,7 @@ import ModalSolicitudSoporte from '../components/ModalSolicitudSoporte';
 import ModalUpdateAvailable from '../components/ModalUpdateAvailable';
 import ModalChangeLog from '../components/ModalChangeLog';
 import { getApiUrl } from '../config/api.config.js';
+import { MESSAGES } from '../utils/toastMessages';
 
 import './Login.css';
 
@@ -129,7 +130,7 @@ export default function Login() {
     
     // Bloquear login si hay descarga en progreso
     if (updateState.downloading) {
-      setError('Por favor espera a que se complete la descarga de la actualización');
+      setError('⏳ Por favor espera a que se complete la descarga de la actualización');
       return;
     }
 
@@ -156,10 +157,11 @@ export default function Login() {
         }
         navigate('/');
       } else {
-        setError(data.message || 'Credenciales inválidas');
+        setError(data.message || MESSAGES.INVALID_CREDENTIALS);
       }
     } catch (error) {
-      setError('Error de conexión con el servidor');
+      console.error('Error de login:', error);
+      setError(MESSAGES.CONNECTION_ERROR);
     } finally {
       setLoading(false);
     }
@@ -329,7 +331,7 @@ export default function Login() {
         onClose={() => setShowChangeLogModal(false)}
       />
 
-      <div className="login-version">v{appVersion || '1.0.0'} - SINDESCOL</div>
+      <div className="login-version">v{appVersion || '1.0.5'} - SINDESCOL</div>
 
       <ModalSolicitudSoporte
         isOpen={showModal}
