@@ -5,12 +5,19 @@ import './Sidebar.css';
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [usuario, setUsuario] = useState(null);
+  const [appVersion, setAppVersion] = useState('');
 
   useEffect(() => {
     const usuarioData = localStorage.getItem('usuario') || sessionStorage.getItem('usuario');
     if (usuarioData) {
       setUsuario(JSON.parse(usuarioData));
     }
+
+    if (!window.electron) return;
+
+    window.electron.getAppVersion()
+      .then((info) => setAppVersion(info?.version || ''))
+      .catch(() => setAppVersion(''));
   }, []);
 
   const handleLogout = () => {
@@ -127,7 +134,7 @@ export default function Sidebar() {
           <div className="sidebar-info">
             <h4>Información del Sistema</h4>
             <p>
-              Versión 1.1.5<br />
+              Versión {appVersion || '--'}<br />
               © 2025 SINDESCOL<br />
               <span style={{fontSize: '0.85em', opacity: 0.8}}>Sistema mejorado con alertas intuitivas</span>
             </p>
