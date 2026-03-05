@@ -1,6 +1,6 @@
 {
   "name": "sindescol-backend",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Backend REST API para sistema de gestión sindical SINDESCOL - Colombia",
   "main": "server.js",
   "scripts": {

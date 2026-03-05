@@ -1,6 +1,6 @@
 {
   "name": "sindescol",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Sistema integral de gestión para sindicatos colombianos",
   "main": "desktop/main.js",
   "author": {
