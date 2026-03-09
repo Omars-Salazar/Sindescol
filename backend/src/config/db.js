@@ -55,7 +55,10 @@ if (process.env.DATABASE_URL) {
     database: url.pathname.slice(1), // Remove leading /
     ...poolConfig,
     ssl: {
-      rejectUnauthorized: sslRejectUnauthorized
+      rejectUnauthorized: sslRejectUnauthorized,
+      // Railway usa certificados gestionados por proxy; en dev/local suele requerir bypass de CA.
+      servername: url.hostname,
+      minVersion: 'TLSv1.2'
     }
   });
 } else {
@@ -69,7 +72,9 @@ if (process.env.DATABASE_URL) {
     database: process.env.DB_NAME,
     ...poolConfig,
     ssl: process.env.DB_SSL === 'true' ? {
-      rejectUnauthorized: sslRejectUnauthorized
+      rejectUnauthorized: sslRejectUnauthorized,
+      servername: process.env.DB_HOST,
+      minVersion: 'TLSv1.2'
     } : undefined
   });
 }

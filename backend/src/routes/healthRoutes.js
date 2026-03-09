@@ -31,6 +31,39 @@ router.get('/health', (req, res) => {
 });
 
 /**
+ * GET /health/db - Health check de base de datos
+ * Diagnóstico rápido para validar conectividad MySQL
+ */
+router.get('/health/db', async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+    await connection.ping();
+    connection.release();
+
+    return res.json({
+      success: true,
+      status: 'healthy',
+      database: {
+        status: 'connected',
+        host: process.env.DB_HOST || 'DATABASE_URL',
+        name: process.env.DB_NAME || 'from DATABASE_URL'
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    return res.status(503).json({
+      success: false,
+      status: 'unhealthy',
+      database: {
+        status: 'disconnected',
+        message: error.message
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+/**
  * GET /health/detailed - Health check detallado
  * Incluye verificación de BD, caché y recursos del sistema
  */
@@ -104,7 +137,7 @@ router.get('/health/detailed', async (req, res) => {
   res.json(health);
 });
 
-router.use(authenticateToken, requirePresidenciaNacional);
+router.use('/metrics', authenticateToken, requirePresidenciaNacional);
 
 /**
  * GET /metrics - Métricas del sistema
