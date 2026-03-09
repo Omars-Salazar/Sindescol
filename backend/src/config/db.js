@@ -13,8 +13,18 @@
 
 import mysql from "mysql2/promise";
 import dotenv from "dotenv";
+import path from "path";
+import fs from "fs";
 
-dotenv.config();
+// Cargar .env desde rutas candidatas sin depender de import.meta (compatible con build exe CJS).
+const envCandidates = [
+  process.env.DOTENV_CONFIG_PATH,
+  path.resolve(process.cwd(), ".env"),
+  path.resolve(process.cwd(), "backend", ".env")
+].filter(Boolean);
+
+const envPath = envCandidates.find((candidate) => fs.existsSync(candidate));
+dotenv.config(envPath ? { path: envPath } : undefined);
 
 // Configuración optimizada para Railway Hobby Plan
 // Railway Hobby: ~500MB RAM, max 20-30 conexiones MySQL

@@ -53,9 +53,15 @@ const devOrigins = [
   'http://127.0.0.1:3000'
 ];
 
-const allowedOrigins = isProduction
-  ? Array.from(new Set(['http://localhost:3000', ...envOrigins]))
-  : Array.from(new Set([...devOrigins, ...envOrigins]));
+// Permitir orígenes locales de desarrollo incluso con NODE_ENV=production
+// (útil para pruebas web con Vite contra backend local).
+const allowedOrigins = Array.from(
+  new Set([
+    ...devOrigins,
+    'http://localhost:3000',
+    ...envOrigins
+  ])
+);
 
 const corsOptions = {
   origin: (origin, callback) => {

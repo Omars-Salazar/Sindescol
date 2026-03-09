@@ -11,8 +11,20 @@
  * @license MIT
  */
 
-import "dotenv/config.js";
+import dotenv from "dotenv";
+import path from "path";
+import fs from "fs";
 import app from "./src/app.js";
+
+// Cargar .env desde rutas candidatas sin depender de import.meta (compatible con build exe CJS).
+const envCandidates = [
+  process.env.DOTENV_CONFIG_PATH,
+  path.resolve(process.cwd(), ".env"),
+  path.resolve(process.cwd(), "backend", ".env")
+].filter(Boolean);
+
+const envPath = envCandidates.find((candidate) => fs.existsSync(candidate));
+dotenv.config(envPath ? { path: envPath } : undefined);
 
 const PORT = process.env.PORT || 4000;
 

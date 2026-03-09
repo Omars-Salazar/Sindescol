@@ -136,9 +136,15 @@ function startBackend() {
         console.log('[Backend] Production mode: Running backend.exe');
       }
 
+      const backendEnvPath = isDev
+        ? path.resolve(__dirname, '../backend/.env')
+        : path.join(process.resourcesPath, '.env');
+
       console.log('[Backend] Command:', backendCommand);
       console.log('[Backend] Working directory:', backendCwd);
       console.log('[Backend] File exists:', fs.existsSync(backendCommand));
+      console.log('[Backend] Env path:', backendEnvPath);
+      console.log('[Backend] Env exists:', fs.existsSync(backendEnvPath));
 
       backendProcess = spawn(backendCommand, backendArgs, {
         stdio: ['pipe', 'pipe', 'pipe'],
@@ -146,7 +152,8 @@ function startBackend() {
         env: {
           ...process.env,
           PORT: BACKEND_PORT,
-          NODE_ENV: isDev ? 'development' : 'production'
+          NODE_ENV: isDev ? 'development' : 'production',
+          DOTENV_CONFIG_PATH: backendEnvPath
         }
       });
 
