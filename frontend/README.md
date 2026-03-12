@@ -80,6 +80,15 @@ Crear archivo `.env`:
 
 ```env
 VITE_API_URL=http://localhost:4000/api
+
+# Webhook externo para contingencia (independiente)
+VITE_SUPPORT_FALLBACK_WEBHOOK_URL=
+
+# Token compartido opcional para proteger el webhook (header x-support-token)
+VITE_SUPPORT_FALLBACK_TOKEN=
+
+# Correo de emergencia usado en fallback final (mailto)
+VITE_SUPPORT_EMERGENCY_EMAIL=soportesindescol@gmail.com
 ```
 
 Para producción:

@@ -3,6 +3,16 @@ import * as supportService from '../services/supportService.js';
 export const enviarSolicitudSoporte = async (req, res) => {
   try {
     const { nombre, email, tipoSolicitud, mensaje } = req.body;
+    const tiposSolicitudMap = {
+      cambio_correo: 'Cambio de Correo',
+      'cambio_contraseña': 'Cambio de Contraseña',
+      cambio_contrasena: 'Cambio de Contraseña',
+      actualizacion_datos: 'Actualización de Datos',
+      problema_acceso: 'Problema de Acceso',
+      error_plataforma: 'Error en Plataforma',
+      solicitud_certificado: 'Solicitud de Certificado',
+      otro: 'Otro'
+    };
 
     // Validaciones
     if (!nombre || !email || !tipoSolicitud || !mensaje) {
@@ -22,8 +32,7 @@ export const enviarSolicitudSoporte = async (req, res) => {
     }
 
     // Validar tipo de solicitud
-    const tiposValidos = ['cambio_correo', 'cambio_contraseña'];
-    if (!tiposValidos.includes(tipoSolicitud)) {
+    if (!tiposSolicitudMap[tipoSolicitud]) {
       return res.status(400).json({
         success: false,
         error: 'Tipo de solicitud inválido'
@@ -34,7 +43,7 @@ export const enviarSolicitudSoporte = async (req, res) => {
     const resultado = await supportService.enviarSolicitudSoporte({
       nombre,
       email,
-      tipoSolicitud: tipoSolicitud === 'cambio_correo' ? 'Cambio de Correo' : 'Cambio de Contraseña',
+      tipoSolicitud: tiposSolicitudMap[tipoSolicitud],
       mensaje
     });
 

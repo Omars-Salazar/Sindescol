@@ -1,0 +1,19 @@
+name = "sindescol-support-contingency"
+main = "worker.js"
+compatibility_date = "2026-03-11"
+
+[vars]
+# Dominio permitido para CORS. En local puedes usar http://localhost:5173
+ALLOWED_ORIGIN = "http://localhost:5173"
+
+# Token compartido con frontend (header x-support-token)
+SUPPORT_TOKEN = "cambia-este-token"
+
+# Primer canal de salida (recomendado: webhook de Make/Zapier/n8n/Discord)
+PRIMARY_ALERT_WEBHOOK_URL = ""
+
+# Segundo canal opcional para redundancia
+SECONDARY_ALERT_WEBHOOK_URL = ""
+
+# Timeout por intento en milisegundos
+WEBHOOK_TIMEOUT_MS = "8000"
